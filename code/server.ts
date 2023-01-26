@@ -7,6 +7,7 @@ import { userRouter } from './user';
 import { linkRouter } from './link';
 
 const app = express()
+app.use(express.json())
 const port = process.env.PORT || 3000;
 
 const corsOptions = {
@@ -17,9 +18,10 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
-app.use('/', userRouter)
-app.use('/', linkRouter)
+//app.use(bodyParser)
+app.use('/api', userRouter)
+app.use('/api', linkRouter)
 
 app.listen(port, () => {
-    console.log("Server started!")
+    console.log(`Server started on ${port}`)
 })
