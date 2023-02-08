@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../quickstart/node"
+		},
+		{
+			"path": "../quickstart/frontend"
+		}
+	],
+	"settings": {}
+}
