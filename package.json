@@ -13,7 +13,7 @@
     "serve": "node dist/server.js",
     "serve-debug": "node --inspect dist/server.js",
     "start": "react-scripts start",
-    "webdev": "run-p start serve",
+    "webdev": "npm run build && run-p start serve",
     "watch-ts": "tsc -w"
   },
   "repository": {
