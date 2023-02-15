@@ -10,6 +10,7 @@
     "build-client": "react-scripts build",
     "clean": "rimraf dist/",
     "dev": "concurrently --kill-others --prefix \"[{name}]\" --names \"Typescript,Node\" -c \"cyan.bold,green.bold\" \"npm run watch-ts\" \"wait-on dist/server.js && npm run serve-debug\"",
+    "migrate-dev": "npx prisma migrate dev --name init",
     "serve": "node dist/server.js",
     "serve-debug": "node --inspect dist/server.js",
     "start": "react-scripts start",

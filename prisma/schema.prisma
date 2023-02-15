@@ -10,19 +10,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+model Institution {
+  id             Int       @id @default(autoincrement())
+  institution_id String
+  name           String
+  log            String
+  created        DateTime  @default(now())
+  updated        DateTime  @updatedAt
+  Item           Item[]
+  Account        Account[]
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+model Item {
+  id             Int         @id @default(autoincrement())
+  item_id        String
+  access_token   String
+  user_id        String
+  created        DateTime    @default(now())
+  updated        DateTime    @updatedAt
+  institution    Institution @relation(fields: [institution_id], references: [id])
+  institution_id Int
+  Account        Account[]
 }
 
+model Account {
+  id             Int           @id @default(autoincrement())
+  account_id     String        @unique
+  name           String
+  type           String
+  subtype        String
+  balance        Decimal
+  institution_id Int
+  item_id        Int
+  created        DateTime      @default(now())
+  updated        DateTime      @updatedAt
+  institution    Institution   @relation(fields: [institution_id], references: [id])
+  item           Item          @relation(fields: [item_id], references: [id])
+  Transaction    Transaction[]
+}
+
+model Transaction {
+  id             Int      @id @default(autoincrement())
+  transaction_id String   @unique
+  account_id     Int
+  date           String
+  amount         Decimal
+  category       String
+  created        DateTime @default(now())
+  updated        DateTime @updatedAt
+  account        Account  @relation(fields: [account_id], references: [id])
+}
