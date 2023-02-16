@@ -17,20 +17,17 @@ model Institution {
   log            String
   created        DateTime  @default(now())
   updated        DateTime  @updatedAt
-  Item           Item[]
   Account        Account[]
 }
 
 model Item {
-  id             Int         @id @default(autoincrement())
-  item_id        String
-  access_token   String
-  user_id        String
-  created        DateTime    @default(now())
-  updated        DateTime    @updatedAt
-  institution    Institution @relation(fields: [institution_id], references: [id])
-  institution_id Int
-  Account        Account[]
+  id           Int       @id @default(autoincrement())
+  item_id      String
+  access_token String
+  user_id      String
+  created      DateTime  @default(now())
+  updated      DateTime  @updatedAt
+  Account      Account[]
 }
 
 model Account {
