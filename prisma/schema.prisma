@@ -13,7 +13,6 @@ datasource db {
 model Institution {
   institution_id String    @id
   name           String
-  log            String
   created        DateTime  @default(now())
   updated        DateTime  @updatedAt
   Account        Account[]
@@ -29,18 +28,24 @@ model Item {
 }
 
 model Account {
-  account_id     String        @unique
-  name           String
-  type           String
-  subtype        String
-  balance        Decimal
-  institution_id String
-  item_id        String
-  created        DateTime      @default(now())
-  updated        DateTime      @updatedAt
-  institution    Institution   @relation(fields: [institution_id], references: [institution_id])
-  item           Item          @relation(fields: [item_id], references: [item_id])
-  Transaction    Transaction[]
+  account_id            String        @unique
+  name                  String
+  official_name         String
+  type                  String
+  subtype               String?
+  available_balance     Decimal?
+  current_balance       Decimal?
+  limit                 Decimal?
+  last_updated_datetime String?
+  institution_id        String
+  mask                  String?
+  persistent_account_id String
+  item_id               String
+  created               DateTime      @default(now())
+  updated               DateTime      @updatedAt
+  institution           Institution   @relation(fields: [institution_id], references: [institution_id])
+  item                  Item          @relation(fields: [item_id], references: [item_id])
+  Transaction           Transaction[]
 }
 
 model Transaction {
