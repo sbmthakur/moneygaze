@@ -11,8 +11,7 @@ datasource db {
 }
 
 model Institution {
-  id             Int       @id @default(autoincrement())
-  institution_id String
+  institution_id String    @id
   name           String
   log            String
   created        DateTime  @default(now())
@@ -21,8 +20,7 @@ model Institution {
 }
 
 model Item {
-  id           Int       @id @default(autoincrement())
-  item_id      String
+  item_id      String    @id
   access_token String
   user_id      String
   created      DateTime  @default(now())
@@ -31,29 +29,27 @@ model Item {
 }
 
 model Account {
-  id             Int           @id @default(autoincrement())
   account_id     String        @unique
   name           String
   type           String
   subtype        String
   balance        Decimal
-  institution_id Int
-  item_id        Int
+  institution_id String
+  item_id        String
   created        DateTime      @default(now())
   updated        DateTime      @updatedAt
-  institution    Institution   @relation(fields: [institution_id], references: [id])
-  item           Item          @relation(fields: [item_id], references: [id])
+  institution    Institution   @relation(fields: [institution_id], references: [institution_id])
+  item           Item          @relation(fields: [item_id], references: [item_id])
   Transaction    Transaction[]
 }
 
 model Transaction {
-  id             Int      @id @default(autoincrement())
-  transaction_id String   @unique
-  account_id     Int
+  transaction_id String   @id
+  account_id     String
   date           String
   amount         Decimal
   category       String
   created        DateTime @default(now())
   updated        DateTime @updatedAt
-  account        Account  @relation(fields: [account_id], references: [id])
+  account        Account  @relation(fields: [account_id], references: [account_id])
 }
