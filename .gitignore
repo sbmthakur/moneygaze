@@ -3,4 +3,4 @@ dist
 .env
 build
 prisma/*.db*
-
+prisma/migrations/
