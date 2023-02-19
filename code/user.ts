@@ -7,7 +7,6 @@ const jsonParser = bodyParser.json();
 
 const router = Router();
 
-<<<<<<< HEAD
 interface User {
   first_name: string;
   last_name?: string;
@@ -24,9 +23,6 @@ router.get('/info', async (request: Request, response: Response) => {
     //     },
     // })
     // response.send(usersWithPosts)
-=======
-router.post('/login', jsonParser, (request: Request, response: Response) => {
->>>>>>> 31393a9e7011da9e80bf6f6835bb1dc7526331b8
     response.send({ "done": true })
 })
 
