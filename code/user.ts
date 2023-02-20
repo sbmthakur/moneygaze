@@ -2,22 +2,25 @@ import { Request, Response, Router } from "express";
 import bodyParser from 'body-parser';
 import { RequestWithPrisma } from "./server";
 import bcrypt from 'bcrypt';
+import { Prisma } from "@prisma/client";
 
 const jsonParser = bodyParser.json();
 
 const router = Router();
 
+/*
 interface User {
   first_name: string;
   last_name?: string;
   email: string;
   password: string;
 }
+*/
 
 router.get('/info', async (request: Request, response: Response) => {
     // const prisma = (request as RequestWithPrisma).prisma
 
-    // const usersWithPosts = await prisma.user.findMany({
+    // const usersWithPosts = await prisma.user.findMany({Prisma.UserDelegate 
     //     include: {
     //         posts: true,
     //     },
@@ -64,12 +67,12 @@ router.post('/register', jsonParser, async (request: Request, response: Response
         }
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const newUser: User = {
+        const newUser = {
             first_name: firstName as string,
             last_name : lastName as string,
             email: email as string,
             password: hashedPassword as string,
-        };
+        }
         try {
         await prisma.user.create({ data: newUser });
         response.status(201).send({ "success": true });
