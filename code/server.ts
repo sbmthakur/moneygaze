@@ -31,7 +31,6 @@ app.use((req: Request, response: Response, next: NextFunction) => {
 })
 
 app.use(cors(corsOptions))
-//app.use(bodyParser)
 app.use('/api', userRouter)
 app.use('/api', linkRouter)
 
