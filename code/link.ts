@@ -107,6 +107,7 @@ router.post('/exchange_public_token', async (req: Request, res: Response) => {
 
   const transactions = data.data.transactions
   //const total_transactions = data.data.total_transactions
+  // TODO: prepare transaction display data
 
   res.send({
     accounts,
