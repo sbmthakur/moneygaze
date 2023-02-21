@@ -24,6 +24,7 @@ interface UserData {
     password: string
 }
 
+
 router.get('/info', async (request: Request, response: Response) => {
 
     response.send({
