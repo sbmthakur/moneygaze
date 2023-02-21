@@ -10,6 +10,7 @@ import {
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { Prisma } from '@prisma/client'
 dotenv.config();
 
 const JWTsecret = process.env.JWTSEC as string;
@@ -18,12 +19,7 @@ const jsonParser = bodyParser.json();
 
 const router = Router();
 
-interface UserData {
-    user_id: number,
-    email: string,
-    password: string
-}
-
+type UserData = Prisma.PromiseReturnType<typeof fetchUserData>
 
 router.get('/info', async (request: Request, response: Response) => {
 
@@ -104,19 +100,19 @@ router.post('/register', jsonParser, async (request: Request, response: Response
 
 const formJwt = async (userData: UserData) => {
     const token = jwt.sign({
-            _id: userData.user_id,
-            email: userData.email
+            _id: userData!.user_id,
+            email: userData!.email
         }, JWTsecret, {
             expiresIn: '20 days',
         });
         const res = {
-            uniqueid: userData.user_id,
+            uniqueid: userData!.user_id,
             ssotoken: token
         }
         return res;
 }
 
-const fetchUserData = async (userEmail: string, request: Request): Promise<UserData | null>  => {
+const fetchUserData = async (userEmail: string, request: Request)  => {
     const prisma = (request as RequestWithPrisma).prisma
     const userData = await prisma.user.findUnique({
         where: {
