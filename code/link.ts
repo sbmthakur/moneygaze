@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { CountryCode, Configuration, PlaidApi, PlaidEnvironments, Products } from "plaid";
-import { AccountType } from "plaid";
+import { AccountBase, AccountType } from "plaid";
 const router = Router();
 
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
@@ -19,12 +19,21 @@ const configuration = new Configuration({
   },
 })
 
-interface ResponseType {
+interface ResponseAccount {
   acc_num: string
   acc_name: string
   ins_name: string
   ins_logo: string
   balance: number
+}
+
+type AccountsCollection = { [key in AccountType]? : ResponseAccount[] }
+
+interface ResponseTransaction {
+  amount: number
+  name: string
+  date: string
+  payment_metadata: Record<string, number | string>
 }
 
 const client = new PlaidApi(configuration);
@@ -83,17 +92,13 @@ router.post('/exchange_public_token', async (req: Request, res: Response) => {
   })).data.institution
 
   const plaidAccounts = data.data.accounts
-  type Pt = { [key in AccountType]? : ResponseType[] }
-  const accounts: Pt = {}
+  const accounts: AccountsCollection = {}
 
   for(let acc of plaidAccounts) {
-    if (!accounts.hasOwnProperty(acc.type)) {
-        accounts[acc.type] = []
-    }
 
-    const current_balance = acc.balances.current
+    const current_balance = acc.balances.current;
 
-    const r: ResponseType = {
+    const r: ResponseAccount = {
       acc_num: acc.mask as string,
       acc_name: acc.name,
       balance: current_balance as number,
@@ -101,13 +106,23 @@ router.post('/exchange_public_token', async (req: Request, res: Response) => {
       ins_logo: insitution_data.logo as string
     }
 
-    //@ts-ignore
-    accounts[acc.type].push(r)
+    if (accounts[acc.type]) {
+      accounts[acc.type]!.push(r)
+    } else {
+      accounts[acc.type] = [r]
+    }
   }
 
-  const transactions = data.data.transactions
-  //const total_transactions = data.data.total_transactions
-  // TODO: prepare transaction display data
+  const transactions: ResponseTransaction[] = data.data.transactions.map(t => {
+    return {
+      amount: t.amount,
+      name: t.name,
+      date: t.date,
+      payment_metadata: {
+        payment_channel: t.payment_channel
+      }
+    }
+  })
 
   res.send({
     accounts,
