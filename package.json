@@ -5,18 +5,20 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "build-ts": "tsc",
+    "build-ts": "tsc -p ./code/tsconfig.json",
     "build": "npm run build-ts",
-    "build-client": "react-scripts build",
+    "build-client": "next build",
+    "generate": "npx prisma generate",
+    "next-dev": "next",
     "clean": "rimraf dist/",
     "dev": "concurrently --kill-others --prefix \"[{name}]\" --names \"Typescript,Node\" -c \"cyan.bold,green.bold\" \"npm run watch-ts\" \"wait-on dist/server.js && npm run serve-debug\"",
     "format-schema": "npx prisma format",
     "migrate-dev": "npx prisma migrate dev --name init",
     "serve": "node dist/server.js",
     "serve-debug": "node --inspect dist/server.js",
-    "start": "react-scripts start",
-    "webdev": "npm run build && run-p start serve",
-    "watch-ts": "tsc -w"
+    "start": "next start",
+    "webdev": "npm run build && run-p next-dev serve",
+    "watch-ts": "tsc -w -p ./code/tsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -41,21 +43,18 @@
   },
   "dependencies": {
     "@prisma/client": "^4.9.0",
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "iron-session": "^6.3.1",
     "nanoid": "^4.0.1",
+    "next": "^13.1.6",
     "plaid": "^12.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-plaid-link": "^3.3.2",
-    "react-scripts": "5.0.1",
-    "reflect-metadata": "^0.1.13",
-    "web-vitals": "^2.1.4"
+    "react-scripts": "5.0.1"
   },
   "browserslist": {
     "production": [
