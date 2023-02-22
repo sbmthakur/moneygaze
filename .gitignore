@@ -4,3 +4,4 @@ dist
 build
 prisma/*.db*
 prisma/migrations/
+.next
