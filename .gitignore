@@ -5,3 +5,4 @@ build
 prisma/*.db*
 prisma/migrations/
 .next
+.DS_Store
