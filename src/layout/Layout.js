@@ -12,9 +12,9 @@ const Layout = (props) => {
         flexDirection: "row",
       }}
     >
-      {router.pathname !== "/login" && router.pathname !== "/signup" && (
-        <MySideBar />
-      )}
+      {router.pathname !== "/login" &&
+        router.pathname !== "/signup" &&
+        router.pathname !== "/" && <MySideBar />}
 
       <div style={{ height: "100%", width: "100%" }}>
         <main>
