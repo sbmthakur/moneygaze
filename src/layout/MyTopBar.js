@@ -95,9 +95,15 @@ const MyTopBar = () => {
             </Button>
           </>
         ) : (
-          <Link href="/login" component={NextLink}>
-            Login
-          </Link>
+          <Button variant="outlined">
+            <Link
+              href="/login"
+              component={NextLink}
+              sx={{ color: colors.grey[100] }}
+            >
+              Login
+            </Link>
+          </Button>
         )}
       </Box>
     </Box>

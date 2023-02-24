@@ -1,9 +1,13 @@
-// import { LoginBanner } from "../components/login/LoginBanner";
-import { LoginForm } from "../../components/login/LoginForm";
-import { useContext, useEffect, useState } from "react";
-import { useRouter } from "next/router";
 import { Box } from "@mui/material";
+// import { makeStyles } from "@mui/styles";
+import { SignupForm } from "../../components/signup/SignupForm";
+// import { LoginBanner } from "../components/login/LoginBanner";
+import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
+import { useRouter } from "next/router";
+// import { baseUrl } from "../baseUrl";
+
+const baseUrl = "http://localhost:3001";
 
 const customStyles = {
   loginBanner: {
@@ -18,24 +22,18 @@ const customStyles = {
     height: "calc(100vh - 66px)",
   },
 };
-const baseUrl = "http://localhost:3001";
-const login = () => {
-  const router = useRouter();
+const signup = () => {
   // const classes = useStyles();
-  const [invalidCredential, setInvalidCredential] = useState(false);
+  const router = useRouter();
   const [responseError, setResponseError] = useState(false);
 
   useEffect(() => {
-    setInvalidCredential(false);
     setResponseError(false);
   }, []);
 
-  const loginFormHandler = async (userData) => {
-    setInvalidCredential(false);
-    setResponseError(false);
-
+  const signupFormHandler = async (userData) => {
     try {
-      const response = await fetch(baseUrl + "/api/login", {
+      const response = await fetch(baseUrl + "/api/register", {
         method: "POST",
         body: JSON.stringify(userData),
         headers: {
@@ -44,19 +42,21 @@ const login = () => {
       });
 
       if (response.status === 200) {
+        console.log("Managed to come heere");
         const data = await response.json();
         const token = data.ssotoken;
         Cookies.set("moneygaze-user", token);
-        router.push("/dashboard", { replace: true });
-      } else if (response.status === 403) {
-        setInvalidCredential(true);
+
+        router.replace("/dashboard", { replace: true });
+      } else if (response.status === 401) {
+        setResponseError(true);
       }
     } catch (error) {
       console.log(error);
-
       setResponseError(true);
     }
   };
+
   return (
     <Box
       sx={{
@@ -70,12 +70,12 @@ const login = () => {
         // mt: "10%",
       }}
     >
-      <LoginForm
-        onLoginSubmit={loginFormHandler}
-        invalidError={invalidCredential}
+      <SignupForm
+        onSignUpSubmit={signupFormHandler}
         responseError={responseError}
       />
     </Box>
   );
 };
-export default login;
+
+export default signup;
