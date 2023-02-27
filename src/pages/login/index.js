@@ -47,7 +47,20 @@ const login = () => {
   };
 
   const googleLoginHandler = async (credentialResponse) => {
-    Cookies.set("moneygaze-user", credentialResponse.credential);
+    const credential = { credential: credentialResponse.credential };
+    try {
+      const response = await axios.post(
+        baseUrl + "/api/loginviagoogle",
+        credential
+      );
+      const token = response.data.ssotoken;
+      // const token = "ouath";
+      Cookies.set("moneygaze-user", token);
+      router.replace("/dashboard");
+    } catch (error) {
+      console.log(error);
+      setResponseError(true);
+    }
     router.replace("/dashboard");
   };
 
