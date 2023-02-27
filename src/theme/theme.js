@@ -16,12 +16,12 @@ export const useMuiTheme = () => {
               main: colors.primary[500],
             },
             secondary: {
-              main: colors.greenAccent[500],
+              main: colors.blueAccent[500],
             },
             neutral: {
               dark: colors.grey[700],
               main: colors.grey[500],
-              light: colors.grey[100],
+              light: colors.grey[300],
             },
             background: {
               default: colors.primary[500],
@@ -37,15 +37,15 @@ export const useMuiTheme = () => {
               main: colors.primary[100],
             },
             secondary: {
-              main: colors.greenAccent[500],
+              main: colors.blueAccent[500],
             },
             neutral: {
               dark: colors.grey[700],
               main: colors.grey[500],
-              light: colors.grey[100],
+              light: colors.grey[300],
             },
             background: {
-              default: "#fcfcfc",
+              default: "#FAFAFB",
             },
 
             highlight: {
@@ -82,5 +82,17 @@ export const useMuiTheme = () => {
         fontSize: 14,
       },
     },
+    shadows: {
+      10: "rgba(0, 0, 0, 0.08) 0px 4px 12px",
+    },
+    // breakpoints: {
+    //   values: {
+    //     xs: 0,
+    //     sm: 450,
+    //     md: 600,
+    //     lg: 900,
+    //     xl: 1200,
+    //   },
+    // },
   });
 };

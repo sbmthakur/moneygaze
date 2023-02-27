@@ -1,29 +1,18 @@
 // import { LoginBanner } from "../components/login/LoginBanner";
 import { LoginForm } from "../../components/login/LoginForm";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Box } from "@mui/material";
 import Cookies from "js-cookie";
+import axios from "axios";
 
-const customStyles = {
-  loginBanner: {
-    background: "linear-gradient(180deg, #EA5DEB 0%, #832BE0 100%)",
-    textShadow: "2px 2px 2px rgba(0,0,0,0.26)",
-  },
-
-  loginForm: {
-    display: "flex",
-    padding: "0",
-    width: "100%",
-    height: "calc(100vh - 66px)",
-  },
-};
-const baseUrl = "http://localhost:3001";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 const login = () => {
   const router = useRouter();
   // const classes = useStyles();
   const [invalidCredential, setInvalidCredential] = useState(false);
   const [responseError, setResponseError] = useState(false);
+  const [userNotFound, setUserNotFound] = useState(false);
 
   useEffect(() => {
     setInvalidCredential(false);
@@ -33,30 +22,35 @@ const login = () => {
   const loginFormHandler = async (userData) => {
     setInvalidCredential(false);
     setResponseError(false);
+    setUserNotFound(false);
 
     try {
-      const response = await fetch(baseUrl + "/api/login", {
-        method: "POST",
-        body: JSON.stringify(userData),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.status === 200) {
-        const data = await response.json();
-        const token = data.ssotoken;
-        Cookies.set("moneygaze-user", token);
-        router.push("/dashboard", { replace: true });
-      } else if (response.status === 403) {
-        setInvalidCredential(true);
-      }
+      const response = await axios.post(baseUrl + "/api/login", userData);
+      const token = response.data.ssotoken;
+      Cookies.set("moneygaze-user", token);
+      router.replace("/dashboard");
     } catch (error) {
       console.log(error);
-
-      setResponseError(true);
+      if (error.response) {
+        if (error.response.status === 401) {
+          setInvalidCredential(true);
+        } else if (error.response.status === 404) {
+          setUserNotFound(true);
+        }
+      } else if (err.request) {
+        // The client never received a response, and the request was never left
+        console.log(err.request);
+      } else {
+        setResponseError(true);
+      }
     }
   };
+
+  const googleLoginHandler = async (credentialResponse) => {
+    Cookies.set("moneygaze-user", credentialResponse.credential);
+    router.replace("/dashboard");
+  };
+
   return (
     <Box
       sx={{
@@ -74,6 +68,8 @@ const login = () => {
         onLoginSubmit={loginFormHandler}
         invalidError={invalidCredential}
         responseError={responseError}
+        userNotFound={userNotFound}
+        onGoogleLoginSubmit={googleLoginHandler}
       />
     </Box>
   );

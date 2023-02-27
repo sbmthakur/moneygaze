@@ -13,14 +13,17 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
+import { useTheme } from "@mui/material/";
 
-const customStyles = {
+import { GoogleLogin } from "@react-oauth/google";
+
+const customStyles = (theme, colors) => ({
   inpuText: {
     "& label.Mui-focused": {
-      color: "#832BE0",
+      color: `${theme.palette.neutral.light}`,
     },
     "& .MuiFilledInput-underline:after": {
-      borderBottomColor: "#832BE0",
+      borderBottomColor: `${theme.palette.neutral.light}`,
     },
   },
 
@@ -39,15 +42,17 @@ const customStyles = {
     paddingLeft: "30px !important",
     paddingRight: "30px !important",
     fontSize: "18px !important",
-    backgroundColor: "#832BE0 !important",
+    backgroundColor: `${theme.palette.secondary.main} !important`,
   },
-};
+});
 
 export const LoginForm = (props) => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
+  const theme = useTheme();
+  const styles = customStyles(theme);
   //   const classes = useStyles();
   //   const navigate = useNavigate();
 
@@ -140,13 +145,16 @@ export const LoginForm = (props) => {
     >
       <Avatar
         alt="R"
-        src="/assets/Readify.png"
-        sx={{ width: 60, height: 60 }}
+        src="/images/finance-1.png"
+        sx={{ width: 80, height: 80 }}
       />
       <h1>Login</h1>
 
       {props.invalidError && (
         <Alert severity="error">Please enter valid credentials!</Alert>
+      )}
+      {props.userNotFound && (
+        <Alert severity="error">User not found. Please signup first!</Alert>
       )}
       {props.responseError && (
         <Alert severity="error">There was some error. Try again!</Alert>
@@ -163,9 +171,7 @@ export const LoginForm = (props) => {
         >
           <Stack justifyContent="center" alignItems="center" spacing={2}>
             <TextField
-              className={
-                emailError ? customStyles.errorText : customStyles.inpuText
-              }
+              sx={emailError ? styles.errorText : styles.inpuText}
               required
               id="outlined-required3"
               label="Email Id"
@@ -182,9 +188,7 @@ export const LoginForm = (props) => {
               inputRef={emailRef}
             />
             <TextField
-              className={
-                passwordError ? customStyles.errorText : customStyles.inpuText
-              }
+              sx={emailError ? styles.errorText : styles.inpuText}
               id="outlined-adornment-password"
               type={showPassword ? "text" : "password"}
               label="Password *"
@@ -220,24 +224,61 @@ export const LoginForm = (props) => {
               justifyContent: "center",
             }}
           >
-            <Button
-              type="submit"
-              variant="contained"
-              className={customStyles.signupButton}
-            >
+            <Button type="submit" variant="contained" sx={styles.signupButton}>
               Submit
             </Button>
           </Box>
         </Box>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            mt: 5,
+            // flexBasis: "100px",
+          }}
+        >
+          <Typography
+            sx={{
+              fontWeight: "400",
+            }}
+            variant="h4"
+          >
+            Or
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            mt: 3,
+            // flexBasis: "100px",
+          }}
+        >
+          <GoogleLogin
+            shape="pill"
+            ux_mode="popup"
+            onSuccess={(credentialResponse) => {
+              console.log(credentialResponse);
+              props.onGoogleLoginSubmit(credentialResponse);
+            }}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />
+        </Box>
       </Container>
-      <Stack direction="row" spacing={1} mt={4}>
+      <Stack direction="row" spacing={1} mt={5}>
         <Typography variant="h6" sx={{ fontWeight: "regular" }}>
           Don't have an account?
         </Typography>
         <Typography
           onClick={() => router.push("/signup")}
           variant="h6"
-          sx={{ fontWeight: "bold", color: "#EA5DEB", cursor: "pointer" }}
+          sx={{
+            fontWeight: "bold",
+            color: theme.palette.secondary.main,
+            cursor: "pointer",
+          }}
         >
           Signup
         </Typography>

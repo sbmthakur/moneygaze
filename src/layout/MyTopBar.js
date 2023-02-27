@@ -55,7 +55,7 @@ const MyTopBar = () => {
       p={1.5}
     >
       <Box display="flex" alignItems="center">
-        {broken && (
+        {isUserLoggedIn && broken && (
           <IconButton onClick={toggleSidebar} sx={{ margin: "0 6 0 2" }}>
             <MenuOutlined />
           </IconButton>
@@ -86,19 +86,16 @@ const MyTopBar = () => {
                 S
               </Avatar>
             </IconButton>
-            <Button
-              onClick={handleLogout}
-              variant="outlined"
-              sx={{ color: colors.grey[100] }}
-            >
+            <Button onClick={handleLogout} sx={{ color: colors.grey[100] }}>
               Logout
             </Button>
           </>
         ) : (
-          <Button variant="outlined">
+          <Button>
             <Link
               href="/login"
               component={NextLink}
+              underline="none"
               sx={{ color: colors.grey[100] }}
             >
               Login

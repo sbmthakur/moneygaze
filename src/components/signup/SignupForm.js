@@ -9,23 +9,24 @@ import {
   Alert,
   Popper,
 } from "@mui/material";
-import { Button, TextField } from "@mui/material";
+import { Button, TextField, useTheme } from "@mui/material";
 // import { useNavigate } from "react-router-dom";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
+import { GoogleLogin } from "@react-oauth/google";
 // import Cookies from "js-cookie";
 // import { useRouter } from "next/router";
 
-const customStyles = {
+const customStyles = (theme) => ({
   inpuText: {
     "& label.Mui-focused": {
-      color: "#832BE0",
+      color: `${theme.palette.neutral.light}`,
     },
 
     "& .MuiFilledInput-underline:after": {
-      borderBottomColor: "#832BE0",
+      borderBottomColor: `${theme.palette.neutral.light}`,
     },
   },
 
@@ -44,9 +45,9 @@ const customStyles = {
     paddingLeft: "30px !important",
     paddingRight: "30px !important",
     fontSize: "18px !important",
-    backgroundColor: "#832BE0 !important",
+    backgroundColor: `${theme.palette.secondary.main} !important`,
   },
-};
+});
 
 export const SignupForm = (props) => {
   const router = useRouter();
@@ -55,6 +56,8 @@ export const SignupForm = (props) => {
   const [lastNameError, setLastNameError] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
+  const theme = useTheme();
+  const styles = customStyles(theme);
 
   //   const classes = useStyles();
 
@@ -175,8 +178,8 @@ export const SignupForm = (props) => {
     >
       <Avatar
         alt="R"
-        src="/assets/Readify.png"
-        sx={{ width: 60, height: 60 }}
+        src="/images/finance-1.png"
+        sx={{ width: 80, height: 80 }}
       />
       <h1>Register</h1>
       {props.responseError && (
@@ -197,9 +200,7 @@ export const SignupForm = (props) => {
             spacing={2}
           >
             <TextField
-              sx={
-                firstNameError ? customStyles.errorText : customStyles.inpuText
-              }
+              sx={firstNameError ? styles.errorText : styles.inpuText}
               required
               id="outlined-required1"
               label="First Name"
@@ -216,9 +217,7 @@ export const SignupForm = (props) => {
               inputRef={fNameRef}
             />
             <TextField
-              className={
-                lastNameError ? customStyles.errorText : customStyles.inpuText
-              }
+              sx={firstNameError ? styles.errorText : styles.inpuText}
               required
               id="outlined-required2"
               label="Last Name"
@@ -243,9 +242,7 @@ export const SignupForm = (props) => {
             mt={2}
           >
             <TextField
-              className={
-                emailError ? customStyles.errorText : customStyles.inpuText
-              }
+              sx={firstNameError ? styles.errorText : styles.inpuText}
               required
               id="outlined-required3"
               label="Email Id"
@@ -262,9 +259,7 @@ export const SignupForm = (props) => {
               inputRef={emailRef}
             />
             <TextField
-              className={
-                passwordError ? customStyles.errorText : customStyles.inpuText
-              }
+              sx={firstNameError ? styles.errorText : styles.inpuText}
               id="outlined-adornment-password"
               type={showPassword ? "text" : "password"}
               label="Password *"
@@ -300,14 +295,47 @@ export const SignupForm = (props) => {
               justifyContent: "center",
             }}
           >
-            <Button
-              type="submit"
-              variant="contained"
-              className={customStyles.signupButton}
-            >
+            <Button type="submit" variant="contained" sx={styles.signupButton}>
               Sign In
             </Button>
           </Box>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            mt: 5,
+            // flexBasis: "100px",
+          }}
+        >
+          <Typography
+            sx={{
+              fontWeight: "400",
+            }}
+            variant="h4"
+          >
+            Or
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            mt: 3,
+            // flexBasis: "100px",
+          }}
+        >
+          <GoogleLogin
+            shape="pill"
+            ux_mode="popup"
+            onSuccess={(credentialResponse) => {
+              console.log(credentialResponse);
+              props.onGoogleLoginSubmit(credentialResponse);
+            }}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />
         </Box>
       </Container>
 
@@ -318,7 +346,11 @@ export const SignupForm = (props) => {
         <Typography
           onClick={() => router.push("/login")}
           variant="h6"
-          sx={{ fontWeight: "bold", color: "#EA5DEB", cursor: "pointer" }}
+          sx={{
+            fontWeight: "bold",
+            color: theme.palette.secondary.main,
+            cursor: "pointer",
+          }}
         >
           Login
         </Typography>

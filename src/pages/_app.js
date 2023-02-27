@@ -13,9 +13,12 @@ import {
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useRef } from "react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 // client-side cache, shared for the whole session of the user in the browser
 const clientSideEmotionCache = createEmotionCache();
+
+const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function App({
   Component,
@@ -30,24 +33,26 @@ export default function App({
       <Head>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+      <GoogleOAuthProvider clientId={CLIENT_ID}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
 
-        <ProSidebarProvider>
-          <QueryClientProvider client={queryClient.current}>
+          <ProSidebarProvider>
+            {/* <QueryClientProvider client={queryClient.current}>
             {
               // this is the important part, we are passing the dehydratedState to the Hydrate component and it will hydrate the cache on client
               // prefetched data will be available on the client side to every component that uses useQuery
             }
-            <Hydrate state={pageProps.dehydratedState}>
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
-              <ReactQueryDevtools initialIsOpen={false} />
-            </Hydrate>
-          </QueryClientProvider>
-        </ProSidebarProvider>
-      </ThemeProvider>
+            <Hydrate state={pageProps.dehydratedState}> */}
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+            {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+            {/* </Hydrate>
+          </QueryClientProvider> */}
+          </ProSidebarProvider>
+        </ThemeProvider>
+      </GoogleOAuthProvider>
     </CacheProvider>
   );
 }

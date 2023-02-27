@@ -5,23 +5,10 @@ import { SignupForm } from "../../components/signup/SignupForm";
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/router";
-// import { baseUrl } from "../baseUrl";
+import axios from "axios";
 
-const baseUrl = "http://localhost:3001";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
-const customStyles = {
-  loginBanner: {
-    background: "linear-gradient(180deg, #EA5DEB 0%, #832BE0 100%)",
-    textShadow: "2px 2px 2px rgba(0,0,0,0.26)",
-  },
-
-  loginForm: {
-    display: "flex",
-    padding: "0",
-    width: "100%",
-    height: "calc(100vh - 66px)",
-  },
-};
 const signup = () => {
   // const classes = useStyles();
   const router = useRouter();
@@ -32,29 +19,44 @@ const signup = () => {
   }, []);
 
   const signupFormHandler = async (userData) => {
+    // try {
+    //   const response = await fetch(baseUrl + "/api/register", {
+    //     method: "POST",
+    //     body: JSON.stringify(userData),
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   });
+
+    //   if (response.status === 200) {
+    //     console.log("Managed to come heere");
+    //     const data = await response.json();
+    //     const token = data.ssotoken;
+    //     Cookies.set("moneygaze-user", token);
+
+    //     router.replace("/dashboard", { replace: true });
+    //   } else if (response.status === 401) {
+    //     setResponseError(true);
+    //   }
+    // } catch (error) {
+    //   console.log(error);
+    //   setResponseError(true);
+    // }
+
     try {
-      const response = await fetch(baseUrl + "/api/register", {
-        method: "POST",
-        body: JSON.stringify(userData),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.status === 200) {
-        console.log("Managed to come heere");
-        const data = await response.json();
-        const token = data.ssotoken;
-        Cookies.set("moneygaze-user", token);
-
-        router.replace("/dashboard", { replace: true });
-      } else if (response.status === 401) {
-        setResponseError(true);
-      }
+      const response = await axios.post(baseUrl + "/api/register", userData);
+      const token = response.data.ssotoken;
+      Cookies.set("moneygaze-user", token);
+      router.replace("/dashboard");
     } catch (error) {
       console.log(error);
       setResponseError(true);
     }
+  };
+
+  const googleLoginHandler = async (credentialResponse) => {
+    Cookies.set("moneygaze-user", credentialResponse.credential);
+    router.replace("/dashboard");
   };
 
   return (
@@ -73,6 +75,7 @@ const signup = () => {
       <SignupForm
         onSignUpSubmit={signupFormHandler}
         responseError={responseError}
+        onGoogleLoginSubmit={googleLoginHandler}
       />
     </Box>
   );

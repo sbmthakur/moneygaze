@@ -1,9 +1,15 @@
 import { getTimePeriod } from "../../utils/getTimePeriod";
 import { Header } from "../../components/common/Header";
 import Head from "next/head";
-import { Box } from "@mui/material";
+import { Box, Card, Grid, useMediaQuery, useTheme } from "@mui/material";
+import { MainChart } from "../../components/dasboard/MainChart";
+import { Accounts } from "../../components/dasboard/Accounts";
+import { Transactions } from "../../components/dasboard/Transactions";
+
 const dashboard = () => {
   const timePeriod = getTimePeriod();
+  const theme = useTheme();
+  const smScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   return (
     <>
@@ -22,6 +28,28 @@ const dashboard = () => {
             subtitle="Welcome to your dashboard"
           />
         </Box>
+        <Grid container rowSpacing={2} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+          <Grid item xs={12} sm={12} md={7}>
+            <Grid container rowSpacing={2}>
+              <Grid item xs={12}>
+                <MainChart />
+              </Grid>
+              {smScreen && (
+                <Grid item xs={12}>
+                  <Accounts />
+                </Grid>
+              )}
+              <Grid item xs={12}>
+                <Transactions />
+              </Grid>
+            </Grid>
+          </Grid>
+          {!smScreen && (
+            <Grid item xs={12} sm={12} md={5}>
+              <Accounts />
+            </Grid>
+          )}
+        </Grid>
       </Box>
     </>
   );

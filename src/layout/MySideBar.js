@@ -45,6 +45,8 @@ const MySideBar = () => {
         position: "sticky",
         display: "flex",
         height: "100vh",
+        boxShadow: theme.shadows[10],
+
         top: 0,
         bottom: 0,
         zIndex: 10000,
