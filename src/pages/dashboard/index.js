@@ -5,11 +5,17 @@ import { Box, Card, Grid, useMediaQuery, useTheme } from "@mui/material";
 import { MainChart } from "../../components/dasboard/MainChart";
 import { Accounts } from "../../components/dasboard/Accounts";
 import { Transactions } from "../../components/dasboard/Transactions";
-
+import { useUserStore } from "@/src/store/userStore";
+import { useEffect } from "react";
 const dashboard = () => {
   const timePeriod = getTimePeriod();
   const theme = useTheme();
   const smScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const user = useUserStore((state) => state.user);
+
+  // useEffect(() => {
+  //   console.log(user);
+  // }, [user]);
 
   return (
     <>
@@ -24,7 +30,7 @@ const dashboard = () => {
         <Box m="10px 0">
           <Header
             title1={`${timePeriod}`}
-            title2="Shubham"
+            title2={`${user?.first_name}`}
             subtitle="Welcome to your dashboard"
           />
         </Box>

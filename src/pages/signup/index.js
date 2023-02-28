@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/router";
 import axios from "axios";
+import { useUserStore } from "@/src/store/userStore";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -13,6 +14,7 @@ const signup = () => {
   // const classes = useStyles();
   const router = useRouter();
   const [responseError, setResponseError] = useState(false);
+  const setUser = useUserStore((state) => state.setUser);
 
   useEffect(() => {
     setResponseError(false);
@@ -47,6 +49,7 @@ const signup = () => {
       const response = await axios.post(baseUrl + "/api/register", userData);
       const token = response.data.ssotoken;
       Cookies.set("moneygaze-user", token);
+      setUser(response.data);
       router.replace("/dashboard");
     } catch (error) {
       console.log(error);
@@ -64,6 +67,7 @@ const signup = () => {
       const token = response.data.ssotoken;
       // const token = "ouath";
       Cookies.set("moneygaze-user", token);
+      setUser(response.data);
       router.replace("/dashboard");
     } catch (error) {
       console.log(error);

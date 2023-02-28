@@ -19,6 +19,7 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import NextLink from "next/link";
+import { useUserStore } from "../store/userStore";
 
 const MyTopBar = () => {
   const theme = useTheme();
@@ -27,16 +28,19 @@ const MyTopBar = () => {
   const { toggleSidebar, collapseSidebar, broken } = useProSidebar();
   const router = useRouter();
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
-  const user = Cookies.get("moneygaze-user");
+  const userInCookie = Cookies.get("moneygaze-user");
+  const user = useUserStore((state) => state.user);
+  const setUser = useUserStore((state) => state.setUser);
 
   // simulate logout
   const handleLogout = () => {
     Cookies.remove("moneygaze-user");
+    setUser(null);
     router.replace("/login");
   };
 
   const checkUserInCookie = () => {
-    if (user) {
+    if (userInCookie) {
       setIsUserLoggedIn(true);
     } else {
       setIsUserLoggedIn(false);
@@ -45,7 +49,7 @@ const MyTopBar = () => {
 
   useEffect(() => {
     checkUserInCookie();
-  }, [user]);
+  }, [userInCookie]);
 
   return (
     <Box
@@ -80,10 +84,10 @@ const MyTopBar = () => {
             <IconButton>
               <Avatar
                 alt="Profile image"
-                src="/images/avatar.png"
+                src={user?.user_image}
                 sx={{ width: 27, height: 27 }}
               >
-                S
+                {user?.first_name[0]}
               </Avatar>
             </IconButton>
             <Button onClick={handleLogout} sx={{ color: colors.grey[100] }}>

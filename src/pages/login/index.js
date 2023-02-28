@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { Box } from "@mui/material";
 import Cookies from "js-cookie";
 import axios from "axios";
+import { useUserStore } from "@/src/store/userStore";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 const login = () => {
@@ -13,6 +14,7 @@ const login = () => {
   const [invalidCredential, setInvalidCredential] = useState(false);
   const [responseError, setResponseError] = useState(false);
   const [userNotFound, setUserNotFound] = useState(false);
+  const setUser = useUserStore((state) => state.setUser);
 
   useEffect(() => {
     setInvalidCredential(false);
@@ -27,7 +29,9 @@ const login = () => {
     try {
       const response = await axios.post(baseUrl + "/api/login", userData);
       const token = response.data.ssotoken;
+      // console.log(response.data);
       Cookies.set("moneygaze-user", token);
+      setUser(response.data);
       router.replace("/dashboard");
     } catch (error) {
       console.log(error);
@@ -57,6 +61,7 @@ const login = () => {
       const token = response.data.ssotoken;
       // const token = "ouath";
       Cookies.set("moneygaze-user", token);
+      setUser(response.data);
       router.replace("/dashboard");
     } catch (error) {
       console.log(error);
