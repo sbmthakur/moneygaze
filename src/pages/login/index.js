@@ -50,9 +50,10 @@ const login = () => {
     const credential = { credential: credentialResponse.credential };
     try {
       const response = await axios.post(
-        baseUrl + "/api/loginviagoogle",
+        baseUrl + "/api/registerviagoogle",
         credential
       );
+      console.log(response.data);
       const token = response.data.ssotoken;
       // const token = "ouath";
       Cookies.set("moneygaze-user", token);

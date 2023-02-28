@@ -4,6 +4,7 @@ import { RequestWithPrisma } from "./server";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
+import { Prisma } from "@prisma/client";
 const JWTsecret = process.env.JWTSEC as string;
 
 const jsonParser = bodyParser.json();
@@ -12,11 +13,12 @@ const router = Router();
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
-interface UserData {
-  user_id: number;
-  email: string;
-  password: string;
-}
+// interface UserData {
+//   user_id: number;
+//   email: string;
+//   password: string;
+// }
+export type UserData = Prisma.PromiseReturnType<typeof fetchUserData>;
 
 router.get("/info", async (request: Request, response: Response) => {
   response.send({
@@ -29,12 +31,13 @@ router.post(
   jsonParser,
   async (request: Request, response: Response) => {
     try {
-      console.log("Ikde");
-      const { email, password } = request.body;
+      // const { email, password } = request.body;
+      const email = request.body.email;
+      const pass = request.body.password;
 
-      console.log(email, password);
+      console.log(email, pass);
 
-      if (!email || !password) {
+      if (!email || !pass) {
         return response.status(400).send({
           message: "Missing required fields",
         });
@@ -49,7 +52,7 @@ router.post(
       }
 
       const passwordMatch = await bcrypt.compare(
-        password,
+        pass,
         userData.password as string
       );
 
@@ -59,7 +62,12 @@ router.post(
         });
       }
 
-      const result = await formJwt(userData as UserData);
+      let result = await formJwt(userData as UserData);
+      const { password, ...returnUserData } = userData;
+      result = {
+        ...result,
+        ...returnUserData,
+      };
 
       response.status(200).send(result);
     } catch (error) {
@@ -78,16 +86,19 @@ router.post(
     try {
       const prisma = (request as RequestWithPrisma).prisma;
 
-      const { firstName, lastName, email, password } = request.body;
+      const { firstName, lastName } = request.body;
 
-      console.log(firstName, lastName, email, password);
+      const email = request.body.email;
+      const pass = request.body.password;
 
-      if (!firstName || !email || !password) {
+      console.log(firstName, lastName, email, pass);
+
+      if (!firstName || !email || !pass) {
         return response.status(400).send({
           message: "Missing required fields",
         });
       }
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(pass, 10);
 
       const newUser = {
         first_name: firstName as string,
@@ -101,10 +112,17 @@ router.post(
       });
 
       const userData = await fetchUserData(email, request);
+      if (userData) {
+        const { password, ...returnUserData } = userData;
+        let result = await formJwt(userData as UserData);
 
-      const result = await formJwt(userData as UserData);
+        result = {
+          ...result,
+          ...returnUserData,
+        };
 
-      response.status(200).send(result);
+        response.status(200).send(result);
+      }
     } catch (error) {
       console.error(error);
       response.status(500).send({
@@ -122,10 +140,6 @@ router.post(
       const prisma = (request as RequestWithPrisma).prisma;
 
       const token = request.body.credential;
-      // console.log("Body");
-      // console.log(request.body);
-      // console.log("credential in verifying backend");
-      // console.log(token);
 
       const payload = await verify(token).catch(console.error);
       if (payload) {
@@ -133,64 +147,28 @@ router.post(
           first_name: payload.given_name as string,
           last_name: payload.family_name as string,
           email: payload.email as string,
+          user_image: payload.picture as string,
           password: "dummy",
         };
 
-        const userData = await prisma.user.findUnique({
+        const userExists = await prisma.user.findUnique({
           where: {
             email: newUser.email,
           },
         });
 
-        if (userData) {
-          response.status(409).send("Duplicate User");
-        } else {
+        if (!userExists) {
           await prisma.user.create({
             data: newUser,
           });
-
-          const userData = await fetchUserData(newUser.email, request);
-
-          const result = await formJwt(userData as UserData);
-
+        }
+        const userData = await fetchUserData(newUser.email, request);
+        if (userData) {
+          let result = await formJwt(userData as UserData);
+          const { password, ...returnUserData } = userData;
+          result = { ...result, ...returnUserData };
           response.status(200).send(result);
         }
-      } else {
-        response
-          .status(500)
-          .send({ message: "Something went wrong. Try again." });
-      }
-    } catch (error) {
-      console.error(error);
-      response.status(500).send({
-        message: "Something went wrong. Try again.",
-      });
-    }
-  }
-);
-
-router.post(
-  "/loginviagoogle",
-  jsonParser,
-  async (request: Request, response: Response) => {
-    try {
-      const prisma = (request as RequestWithPrisma).prisma;
-
-      const token = request.body.credential;
-
-      const payload = await verify(token).catch(console.error);
-      if (payload) {
-        const userData = await fetchUserData(payload.email as string, request);
-
-        if (!userData) {
-          return response.status(404).send({
-            message: "User doesn't exist, create new account.",
-          });
-        }
-
-        const result = await formJwt(userData as UserData);
-
-        response.status(200).send(result);
       } else {
         response
           .status(500)
@@ -224,8 +202,8 @@ async function verify(token: string) {
 const formJwt = async (userData: UserData) => {
   const token = jwt.sign(
     {
-      _id: userData.user_id,
-      email: userData.email,
+      _id: userData!.user_id,
+      email: userData!.email,
     },
     JWTsecret,
     {
@@ -233,16 +211,13 @@ const formJwt = async (userData: UserData) => {
     }
   );
   const res = {
-    uniqueid: userData.user_id,
+    uniqueid: userData!.user_id,
     ssotoken: token,
   };
   return res;
 };
 
-const fetchUserData = async (
-  userEmail: string,
-  request: Request
-): Promise<UserData | null> => {
+export const fetchUserData = async (userEmail: string, request: Request) => {
   const prisma = (request as RequestWithPrisma).prisma;
   const userData = await prisma.user.findUnique({
     where: {
@@ -250,8 +225,11 @@ const fetchUserData = async (
     },
     select: {
       user_id: true,
+      first_name: true,
+      last_name: true,
       email: true,
       password: true,
+      user_image: true,
     },
   });
 
