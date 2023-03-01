@@ -1,10 +1,20 @@
-import { Request, Response, Router } from "express";
+import {
+  Request,
+  Response,
+  Router
+} from "express";
 import bodyParser from "body-parser";
-import { RequestWithPrisma } from "./server";
+import {
+  RequestWithPrisma
+} from "./server";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { OAuth2Client } from "google-auth-library";
-import { Prisma } from "@prisma/client";
+import {
+  OAuth2Client
+} from "google-auth-library";
+import {
+  Prisma
+} from "@prisma/client";
 const JWTsecret = process.env.JWTSEC as string;
 
 const jsonParser = bodyParser.json();
@@ -13,12 +23,7 @@ const router = Router();
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
-// interface UserData {
-//   user_id: number;
-//   email: string;
-//   password: string;
-// }
-export type UserData = Prisma.PromiseReturnType<typeof fetchUserData>;
+export type UserData = Prisma.PromiseReturnType < typeof fetchUserData > ;
 
 router.get("/info", async (request: Request, response: Response) => {
   response.send({
@@ -26,67 +31,67 @@ router.get("/info", async (request: Request, response: Response) => {
   });
 });
 
-router.post(
-  "/login",
-  jsonParser,
-  async (request: Request, response: Response) => {
-    try {
-      // const { email, password } = request.body;
-      const email = request.body.email;
-      const pass = request.body.password;
+router.post("/login", jsonParser, async (request: Request, response: Response) => {
+  try {
+    const email = request.body.email;
+    const pass = request.body.password;
 
-      console.log(email, pass);
+    console.log(email, pass);
 
-      if (!email || !pass) {
-        return response.status(400).send({
-          message: "Missing required fields",
-        });
-      }
-
-      const userData = await fetchUserData(email, request);
-
-      if (!userData) {
-        return response.status(404).send({
-          message: "User doesn't exist, create new account.",
-        });
-      }
-
-      const passwordMatch = await bcrypt.compare(
-        pass,
-        userData.password as string
-      );
-
-      if (!passwordMatch) {
-        return response.status(401).send({
-          message: "Invalid email or password",
-        });
-      }
-
-      let result = await formJwt(userData as UserData);
-      const { password, ...returnUserData } = userData;
-      result = {
-        ...result,
-        ...returnUserData,
-      };
-
-      response.status(200).send(result);
-    } catch (error) {
-      console.error(error);
-      response.status(500).send({
-        message: "Something went worong. Try again.",
+    if (!email || !pass) {
+      return response.status(400).send({
+        message: "Missing required fields",
       });
     }
-  }
-);
 
-router.post(
-  "/register",
-  jsonParser,
-  async (request: Request, response: Response) => {
+    const userData = await fetchUserData(email, request);
+
+    if (!userData) {
+      return response.status(404).send({
+        message: "User doesn't exist, create new account.",
+      });
+    }
+
+    const passwordMatch = await bcrypt.compare(
+      pass,
+      userData.password as string
+    );
+
+    if (!passwordMatch) {
+      return response.status(401).send({
+        message: "Invalid email or password",
+      });
+    }
+
+    let result = await formJwt(userData as UserData);
+
+    const {
+      password,
+      ...returnUserData
+    } = userData;
+
+    result = {
+      ...result,
+      ...returnUserData,
+    };
+
+    response.status(200).send(result);
+  } catch (error) {
+    console.error(error);
+    response.status(500).send({
+      message: "Something went worong. Try again.",
+    });
+  }
+});
+
+router.post( "/register", jsonParser, async (request: Request, response: Response) => {
     try {
       const prisma = (request as RequestWithPrisma).prisma;
 
-      const { firstName, lastName } = request.body;
+      const {
+        firstName,
+        lastName
+      } = request.body;
 
       const email = request.body.email;
       const pass = request.body.password;
@@ -112,8 +117,12 @@ router.post(
       });
 
       const userData = await fetchUserData(email, request);
+
       if (userData) {
-        const { password, ...returnUserData } = userData;
+        const {
+          password,
+          ...returnUserData
+        } = userData;
         let result = await formJwt(userData as UserData);
 
         result = {
@@ -132,10 +141,7 @@ router.post(
   }
 );
 
-router.post(
-  "/registerviagoogle",
-  jsonParser,
-  async (request: Request, response: Response) => {
+router.post( "/registerviagoogle", jsonParser, async (request: Request, response: Response) => {
     try {
       const prisma = (request as RequestWithPrisma).prisma;
 
@@ -165,14 +171,22 @@ router.post(
         const userData = await fetchUserData(newUser.email, request);
         if (userData) {
           let result = await formJwt(userData as UserData);
-          const { password, ...returnUserData } = userData;
-          result = { ...result, ...returnUserData };
+          const {
+            password,
+            ...returnUserData
+          } = userData;
+          result = {
+            ...result,
+            ...returnUserData
+          };
           response.status(200).send(result);
         }
       } else {
         response
           .status(500)
-          .send({ message: "Something went wrong. Try again." });
+          .send({
+            message: "Something went wrong. Try again."
+          });
       }
     } catch (error) {
       console.error(error);
@@ -200,13 +214,11 @@ async function verify(token: string) {
 }
 
 const formJwt = async (userData: UserData) => {
-  const token = jwt.sign(
-    {
+  const token = jwt.sign({
       _id: userData!.user_id,
       email: userData!.email,
     },
-    JWTsecret,
-    {
+    JWTsecret, {
       expiresIn: "20 days",
     }
   );

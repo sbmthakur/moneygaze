@@ -6,3 +6,6 @@ prisma/*.db*
 prisma/migrations/
 .next
 .DS_Store
+coverage/
+.nyc_output
+*/**.bak
