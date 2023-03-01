@@ -21,7 +21,7 @@ app.use(express.json());
 const port = process.env.PORT || 3000;
 
 const corsOptions = {
-  methods: ["GET", "PUT", "PORT"],
+  methods: ["GET", "PUT", "POST"],
   origin: nextUrl,
   allowedHeaders: ["Content-Type", "API_KEY"],
   optionsSuccessStatus: 200,
