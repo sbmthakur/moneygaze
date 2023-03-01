@@ -1,52 +1,59 @@
-// import { LoginBanner } from "../components/login/LoginBanner";
-import { LoginForm } from "../../components/login/LoginForm";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
 import { Box } from "@mui/material";
+// import { makeStyles } from "@mui/styles";
+import { SignupForm } from "../../components/signup/SignupForm";
+// import { LoginBanner } from "../components/login/LoginBanner";
+import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
+import { useRouter } from "next/router";
 import axios from "axios";
 import { useUserStore } from "@/src/store/userStore";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-const login = () => {
-  const router = useRouter();
+
+const signup = () => {
   // const classes = useStyles();
-  const [invalidCredential, setInvalidCredential] = useState(false);
+  const router = useRouter();
   const [responseError, setResponseError] = useState(false);
-  const [userNotFound, setUserNotFound] = useState(false);
   const setUser = useUserStore((state) => state.setUser);
 
   useEffect(() => {
-    setInvalidCredential(false);
     setResponseError(false);
   }, []);
 
-  const loginFormHandler = async (userData) => {
-    setInvalidCredential(false);
-    setResponseError(false);
-    setUserNotFound(false);
+  const signupFormHandler = async (userData) => {
+    // try {
+    //   const response = await fetch(baseUrl + "/api/register", {
+    //     method: "POST",
+    //     body: JSON.stringify(userData),
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   });
+
+    //   if (response.status === 200) {
+    //     console.log("Managed to come heere");
+    //     const data = await response.json();
+    //     const token = data.ssotoken;
+    //     Cookies.set("moneygaze-user", token);
+
+    //     router.replace("/dashboard", { replace: true });
+    //   } else if (response.status === 401) {
+    //     setResponseError(true);
+    //   }
+    // } catch (error) {
+    //   console.log(error);
+    //   setResponseError(true);
+    // }
 
     try {
-      const response = await axios.post(baseUrl + "/api/login", userData);
+      const response = await axios.post(baseUrl + "/api/register", userData);
       const token = response.data.ssotoken;
-      // console.log(response.data);
       Cookies.set("moneygaze-user", token);
       setUser(response.data);
       router.replace("/dashboard");
     } catch (error) {
       console.log(error);
-      if (error.response) {
-        if (error.response.status === 401) {
-          setInvalidCredential(true);
-        } else if (error.response.status === 404) {
-          setUserNotFound(true);
-        }
-      } else if (err.request) {
-        // The client never received a response, and the request was never left
-        console.log(err.request);
-      } else {
-        setResponseError(true);
-      }
+      setResponseError(true);
     }
   };
 
@@ -57,7 +64,6 @@ const login = () => {
         baseUrl + "/api/registerviagoogle",
         credential
       );
-      console.log(response.data);
       const token = response.data.ssotoken;
       // const token = "ouath";
       Cookies.set("moneygaze-user", token);
@@ -83,14 +89,13 @@ const login = () => {
         // mt: "10%",
       }}
     >
-      <LoginForm
-        onLoginSubmit={loginFormHandler}
-        invalidError={invalidCredential}
+      <SignupForm
+        onSignUpSubmit={signupFormHandler}
         responseError={responseError}
-        userNotFound={userNotFound}
         onGoogleLoginSubmit={googleLoginHandler}
       />
     </Box>
   );
 };
-export default login;
+
+export default signup;

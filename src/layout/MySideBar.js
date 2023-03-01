@@ -1,12 +1,20 @@
 import { useState } from "react";
 import { Menu, Sidebar, MenuItem } from "react-pro-sidebar";
 import { useProSidebar, menuClasses, sidebarClasses } from "react-pro-sidebar";
-import { Box, Link, Typography, useTheme, IconButton } from "@mui/material";
+import {
+  Box,
+  Link,
+  Typography,
+  useTheme,
+  IconButton,
+  Avatar,
+} from "@mui/material";
 import NextLink from "next/link";
 import { tokens } from "../theme/colorTokens";
 import { CloseOutlined, MenuOutlined } from "@mui/icons-material";
 import { NavigationLinks } from "./NavigationLinks";
 import { useRouter } from "next/router";
+import { useUserStore } from "../store/userStore";
 
 const Item = ({ title, to, icon, collapsed, currentPath }) => {
   const theme = useTheme();
@@ -32,19 +40,21 @@ const Item = ({ title, to, icon, collapsed, currentPath }) => {
 const MySideBar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-
+  const user = useUserStore((state) => state.user);
   const { collapseSidebar, toggleSidebar, collapsed, broken } = useProSidebar();
   // const navLink = useNavLinkStore((state) => state.navLink);
   // const setNavLink = useNavLinkStore((state) => state.setNavLink);
 
   const router = useRouter();
 
-  return (
+  return user ? (
     <Box
       sx={{
         position: "sticky",
         display: "flex",
         height: "100vh",
+        boxShadow: theme.shadows[10],
+
         top: 0,
         bottom: 0,
         zIndex: 10000,
@@ -125,17 +135,31 @@ const MySideBar = () => {
                 sx={{
                   "& .avater-image": {
                     backgroundColor: colors.primary[500],
+                    alignContent: "center",
+                    alignItems: "center",
+                    justifyContent: "center",
                   },
                 }}
               >
-                <img
+                <Avatar
+                  alt="Profile image"
+                  src={user?.user_image}
+                  sx={{ width: "100px", height: "100px" }}
+                >
+                  <Typography variant="h1">{user?.first_name[0]}</Typography>
+                </Avatar>
+                {/* <img
                   className="avater-image"
                   alt="profile user"
                   width="100px"
                   height="100px"
-                  src={"/images/avatar.png"}
-                  style={{ cursor: "pointer", borderRadius: "50%" }}
-                />
+                  src={user?.user_image}
+                  style={{
+                    cursor: "pointer",
+                    borderRadius: "50%",
+                    objectFit: "contain !important",
+                  }}
+                /> */}
               </Box>
               <Box textAlign="center">
                 <Typography
@@ -145,7 +169,7 @@ const MySideBar = () => {
                   sx={{ m: "15px 0 0 0" }}
                   flexWrap="nowrap"
                 >
-                  Shubham Bhagat
+                  {`${user?.first_name} ${user?.last_name}`}
                 </Typography>
               </Box>
             </Box>
@@ -168,7 +192,7 @@ const MySideBar = () => {
         </Menu>
       </Sidebar>
     </Box>
-  );
+  ) : null;
 };
 
 export default MySideBar;

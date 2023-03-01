@@ -3,8 +3,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 const empytyState = (set, get) => ({
-  user: {},
-  setNavLink: (user) => set({ user }),
+  user: null,
+  setUser: (user) => set({ user: user }),
 });
 
 export const usePersistedUserStore = create(
