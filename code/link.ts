@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { CountryCode, Configuration, PlaidApi, PlaidEnvironments, Products } from "plaid";
+import { AccountType, CountryCode, Configuration, PlaidApi, PlaidEnvironments, Products } from "plaid";
 
 const router = Router();
 
@@ -21,6 +21,23 @@ const configuration = new Configuration({
 
 const client = new PlaidApi(configuration);
 
+interface ResponseAccount {
+  acc_num: string
+  acc_name: string
+  ins_name: string
+  ins_logo: string
+  balance: number
+}
+
+type AccountsCollection = { [key in AccountType]? : ResponseAccount[] }
+
+interface ResponseTransaction {
+  amount: number
+  name: string
+  date: string
+  payment_metadata: Record<string, number | string>
+}
+
 router.post('/create_link_token', async (req: Request, res: Response) => {
 
   const configs = {
@@ -38,26 +55,78 @@ router.post('/create_link_token', async (req: Request, res: Response) => {
 })
 
 router.post('/exchange_public_token', async (req: Request, res: Response) => {
+
   const response = await client.itemPublicTokenExchange({
     public_token: req.body.public_token
   })
 
-  // store it in the database
-  console.log("ACCESS_TOKEN", response.data.access_token)
-  // @ts-ignore
-  global.access_token = response.data.access_token
-  res.send(true)
-})
+  const access_token = response.data.access_token;
+  
 
-router.get('/balance', async (req: Request, res: Response) => {
+  let ed = new Date()
+  const tz_offset = ed.getTimezoneOffset()
+  ed = new Date(ed.getTime() - (tz_offset * 60 * 1000))
+  const end_date = ed.toISOString().split('T')[0]
+  let month = ed.getMonth()
+  month = month === 0 ? 12 : month - 1
+  ed.setMonth(month)
 
-  const response = await client.accountsBalanceGet({
-    // @ts-ignore
-    access_token: global.access_token
+  const start_date = ed.toISOString().split('T')[0]
+  
+  const data = await client.transactionsGet({
+    access_token,
+    start_date,
+    end_date
   })
 
-  res.json({
-    balance: response.data
+  console.log(start_date, end_date)
+
+  const institution_id = data.data.item.institution_id as string
+
+  const insitution_data = (await client.institutionsGetById({
+    institution_id,
+    country_codes: ["US" as CountryCode],
+    options: {
+      include_optional_metadata: true
+    }
+  })).data.institution
+
+  const plaidAccounts = data.data.accounts
+  const accounts: AccountsCollection = {}
+
+  for(let acc of plaidAccounts) {
+
+    const current_balance = acc.balances.current;
+
+    const r: ResponseAccount = {
+      acc_num: acc.mask as string,
+      acc_name: acc.name,
+      balance: current_balance as number,
+      ins_name: insitution_data.name,
+      ins_logo: insitution_data.logo as string
+    }
+
+    if (accounts[acc.type]) {
+      accounts[acc.type]!.push(r)
+    } else {
+      accounts[acc.type] = [r]
+    }
+  }
+
+  const transactions: ResponseTransaction[] = data.data.transactions.map(t => {
+    return {
+      amount: t.amount,
+      name: t.name,
+      date: t.date,
+      payment_metadata: {
+        payment_channel: t.payment_channel
+      }
+    }
+  })
+
+  res.send({
+    accounts,
+    transactions
   })
 })
 
