@@ -1,0 +1,205 @@
+{
+    "accounts": {
+        "depository": [
+            {
+                "acc_num": "0000",
+                "acc_name": "Plaid Checking",
+                "balance": 110,
+                "ins_name": "Chase",
+                "ins_logo": null
+            },
+            {
+                "acc_num": "1111",
+                "acc_name": "Plaid Saving",
+                "balance": 210,
+                "ins_name": "Chase",
+                "ins_logo": null
+            },
+            {
+                "acc_num": "2222",
+                "acc_name": "Plaid CD",
+                "balance": 1000,
+                "ins_name": "Chase",
+                "ins_logo": null
+            },
+            {
+                "acc_num": "4444",
+                "acc_name": "Plaid Money Market",
+                "balance": 43200,
+                "ins_name": "Chase",
+                "ins_logo": null
+            }
+        ],
+        "credit": [
+            {
+                "acc_num": "3333",
+                "acc_name": "Plaid Credit Card",
+                "balance": 410,
+                "ins_name": "Chase",
+                "ins_logo": null
+            }
+        ],
+        "investment": [
+            {
+                "acc_num": "5555",
+                "acc_name": "Plaid IRA",
+                "balance": 320.76,
+                "ins_name": "Chase",
+                "ins_logo": null
+            },
+            {
+                "acc_num": "6666",
+                "acc_name": "Plaid 401k",
+                "balance": 23631.9805,
+                "ins_name": "Chase",
+                "ins_logo": null
+            }
+        ],
+        "loan": [
+            {
+                "acc_num": "7777",
+                "acc_name": "Plaid Student Loan",
+                "balance": 65262,
+                "ins_name": "Chase",
+                "ins_logo": null
+            },
+            {
+                "acc_num": "8888",
+                "acc_name": "Plaid Mortgage",
+                "balance": 56302.06,
+                "ins_name": "Chase",
+                "ins_logo": null
+            }
+        ]
+    },
+    "transactions": [
+        {
+            "amount": 25,
+            "name": "CREDIT CARD 3333 PAYMENT *//",
+            "date": "2023-03-01",
+            "payment_metadata": {
+                "payment_channel": "other"
+            }
+        },
+        {
+            "amount": 5.4,
+            "name": "Uber 063015 SF**POOL**",
+            "date": "2023-03-01",
+            "payment_metadata": {
+                "payment_channel": "online"
+            }
+        },
+        {
+            "amount": 5850,
+            "name": "ACH Electronic CreditGUSTO PAY 123456",
+            "date": "2023-02-28",
+            "payment_metadata": {
+                "payment_channel": "online"
+            }
+        },
+        {
+            "amount": 1000,
+            "name": "CD DEPOSIT .INITIAL.",
+            "date": "2023-02-28",
+            "payment_metadata": {
+                "payment_channel": "other"
+            }
+        },
+        {
+            "amount": 78.5,
+            "name": "Touchstone Climbing",
+            "date": "2023-02-27",
+            "payment_metadata": {
+                "payment_channel": "in store"
+            }
+        },
+        {
+            "amount": -500,
+            "name": "United Airlines",
+            "date": "2023-02-27",
+            "payment_metadata": {
+                "payment_channel": "in store"
+            }
+        },
+        {
+            "amount": 12,
+            "name": "McDonald's",
+            "date": "2023-02-26",
+            "payment_metadata": {
+                "payment_channel": "in store"
+            }
+        },
+        {
+            "amount": 4.33,
+            "name": "Starbucks",
+            "date": "2023-02-26",
+            "payment_metadata": {
+                "payment_channel": "in store"
+            }
+        },
+        {
+            "amount": 89.4,
+            "name": "SparkFun",
+            "date": "2023-02-25",
+            "payment_metadata": {
+                "payment_channel": "in store"
+            }
+        },
+        {
+            "amount": -4.22,
+            "name": "INTRST PYMNT",
+            "date": "2023-02-24",
+            "payment_metadata": {
+                "payment_channel": "other"
+            }
+        },
+        {
+            "amount": 500,
+            "name": "United Airlines",
+            "date": "2023-02-14",
+            "payment_metadata": {
+                "payment_channel": "in store"
+            }
+        },
+        {
+            "amount": 6.33,
+            "name": "Uber 072515 SF**POOL**",
+            "date": "2023-02-12",
+            "payment_metadata": {
+                "payment_channel": "online"
+            }
+        },
+        {
+            "amount": 500,
+            "name": "Tectra Inc",
+            "date": "2023-02-09",
+            "payment_metadata": {
+                "payment_channel": "in store"
+            }
+        },
+        {
+            "amount": 2078.5,
+            "name": "AUTOMATIC PAYMENT - THANK",
+            "date": "2023-02-08",
+            "payment_metadata": {
+                "payment_channel": "online"
+            }
+        },
+        {
+            "amount": 500,
+            "name": "KFC",
+            "date": "2023-02-08",
+            "payment_metadata": {
+                "payment_channel": "in store"
+            }
+        },
+        {
+            "amount": 500,
+            "name": "Madison Bicycle Shop",
+            "date": "2023-02-08",
+            "payment_metadata": {
+                "payment_channel": "in store"
+            }
+        }
+    ]
+}
