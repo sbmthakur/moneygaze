@@ -1,0 +1,117 @@
+openapi: 3.0.0
+info:
+  title: Sample API
+  description: Example API that returns account and transaction data
+  version: 1.0.0
+paths:
+  /api/exchange_public_token:
+    post:
+      description: Get account and transaction data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                public_token:
+                  type: string
+      responses:
+        '200':
+          description: A successful response containing account and transaction data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: object
+                    properties:
+                      depository:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DepositoryAccount'
+                      credit:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CreditAccount'
+                      investment:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/InvestmentAccount'
+                      loan:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/LoanAccount'
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+components:
+  schemas:
+    DepositoryAccount:
+      type: object
+      properties:
+        acc_num:
+          type: string
+        acc_name:
+          type: string
+        balance:
+          type: number
+        ins_name:
+          type: string
+        ins_logo:
+          type: string
+    CreditAccount:
+      type: object
+      properties:
+        acc_num:
+          type: string
+        acc_name:
+          type: string
+        balance:
+          type: number
+        ins_name:
+          type: string
+        ins_logo:
+          type: string
+    InvestmentAccount:
+      type: object
+      properties:
+        acc_num:
+          type: string
+        acc_name:
+          type: string
+        balance:
+          type: number
+        ins_name:
+          type: string
+        ins_logo:
+          type: string
+    LoanAccount:
+      type: object
+      properties:
+        acc_num:
+          type: string
+        acc_name:
+          type: string
+        balance:
+          type: number
+        ins_name:
+          type: string
+        ins_logo:
+          type: string
+    Transaction:
+      type: object
+      properties:
+        amount:
+          type: number
+        name:
+          type: string
+        date:
+          type: string
+        payment_metadata:
+          type: object
+          properties:
+            payment_channel:
+              type: string
