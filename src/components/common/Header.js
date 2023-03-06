@@ -4,7 +4,7 @@ import { tokens } from "../../theme/colorTokens";
 export const Header = ({ title1, title2, subtitle }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const smScreen = useMediaQuery(theme.breakpoints.up("sm"));
+  const smScreen = useMediaQuery(theme.breakpoints.up("xs"));
 
   return (
     <Box mb="30px">
