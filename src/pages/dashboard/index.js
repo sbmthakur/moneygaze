@@ -13,7 +13,7 @@ const dashboard = () => {
   const theme = useTheme();
   const smScreen = useMediaQuery(theme.breakpoints.down("md"));
   const user = useUserStore((state) => state.user);
-  const chartHeight = smScreen ? 280 : 450;
+  const chartHeight = smScreen ? 280 : 350;
 
   // useEffect(() => {
   //   console.log(user);

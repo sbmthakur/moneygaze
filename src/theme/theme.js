@@ -83,6 +83,7 @@ export const useMuiTheme = () => {
       },
     },
     shadows: {
+      1: "none",
       10: "rgba(0, 0, 0, 0.08) 0px 4px 12px",
     },
     // breakpoints: {
