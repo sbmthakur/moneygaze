@@ -258,7 +258,6 @@ export const LoginForm = (props) => {
             shape="pill"
             ux_mode="popup"
             onSuccess={(credentialResponse) => {
-              console.log(credentialResponse);
               props.onGoogleLoginSubmit(credentialResponse);
             }}
             onError={() => {

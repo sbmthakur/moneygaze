@@ -1,19 +1,20 @@
 import { Box, useTheme, Stack, Button, Typography } from "@mui/material";
 import { tokens } from "../../theme/colorTokens";
-
+import GraphData from "../../../sample_data/sample_graph_data.json";
 import dynamic from "next/dynamic";
+import { useChartStore } from "@/src/store/chartStore";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // chart options
 const areaChartOptions = {
   chart: {
     height: 450,
-
+    id: "expense-chart",
     type: "area",
     toolbar: {
       show: false,
@@ -29,46 +30,62 @@ const areaChartOptions = {
         reset: true | '<img src="/static/icons/reset.png" width="20">',
       },
     },
+    animations: {
+      enabled: true,
+      easing: "easeinout",
+      speed: 800,
+      animateGradually: {
+        enabled: true,
+        delay: 150,
+      },
+      dynamicAnimation: {
+        enabled: true,
+        speed: 350,
+      },
+    },
   },
   dataLabels: {
     enabled: false,
   },
   stroke: {
     curve: "smooth",
-    width: 4,
+    width: 2,
   },
   grid: {
     strokeDashArray: 0,
   },
+  xaxis: {
+    // min: new Date("01 Mar 2012").getTime(),
+
+    type: "datetime",
+  },
 };
 
-export const MainChart = () => {
+export const ExpenseChart = ({ chartHeight }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [slot, setSlot] = useState("week");
+  const slot = useChartStore((state) => state.chartSlot);
+  const setSlot = useChartStore((state) => state.setChartSlot);
   const [options, setOptions] = useState(areaChartOptions);
+
+  const [series, setSeries] = useState([
+    {
+      name: "Expense",
+      data: GraphData,
+    },
+  ]);
+
   useEffect(() => {
     setOptions((prevState) => ({
       ...prevState,
+
       colors: [colors.greenAccent[500], colors.blueAccent[500]],
       xaxis: {
-        categories:
-          slot === "week"
-            ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-            : [
-                "Jan",
-                "Feb",
-                "Mar",
-                "Apr",
-                "May",
-                "Jun",
-                "Jul",
-                "Aug",
-                "Sep",
-                "Oct",
-                "Nov",
-                "Dec",
-              ],
+        // min: new Date("01 Mar 2012").getTime(),
+
+        type: "datetime",
+        tickAmount: 6,
+
         labels: {
           style: {
             colors: theme.palette.neutral.light,
@@ -78,7 +95,6 @@ export const MainChart = () => {
           show: true,
           color: theme.palette.neutral.main,
         },
-        tickAmmount: slot === "week" ? 7 : 11,
       },
       yaxis: {
         labels: {
@@ -92,47 +108,43 @@ export const MainChart = () => {
       },
       tooltip: {
         theme: theme.palette.mode === "dark" ? "dark" : "light",
+        x: {
+          format: "dd MMM yyyy",
+        },
       },
       legend: {
         labels: {
           colors: theme.palette.neutral.light,
         },
       },
-      markers: {
-        size: 1,
-        colors: [colors.greenAccent[500], colors.blueAccent[500]],
-      },
     }));
-  }, [slot, theme]);
+  }, [theme]);
 
-  const [series, setSeries] = useState([
-    {
-      name: "expenses",
-      data: [0, 86, 28, 115, 48, 210, 136],
-    },
-    {
-      name: "income",
-      data: [0, 43, 14, 56, 24, 105, 68],
-    },
-  ]);
+  //   const series= useState(GraphData);
+
+  const current = new Date("2013-02-26");
+  const start = new Date(current - 7 * 24 * 60 * 60 * 1000);
 
   useEffect(() => {
-    setSeries([
-      {
-        name: "income",
-        data:
-          slot === "month"
-            ? [76, 85, 101, 98, 87, 105, 91, 114, 94, 86, 115, 35]
-            : [31, 40, 28, 51, 42, 109, 100],
-      },
-      {
-        name: "expense",
-        data:
-          slot === "month"
-            ? [110, 60, 150, 35, 60, 36, 26, 45, 65, 52, 53, 41]
-            : [11, 32, 45, 32, 34, 52, 41],
-      },
-    ]);
+    if (slot === "week") {
+      setOptions((prevState) => ({
+        ...prevState,
+        xaxis: {
+          ...prevState.xaxis,
+          min: start.getTime(),
+          max: current.getTime(),
+        },
+      }));
+    } else {
+      setOptions((prevState) => ({
+        ...prevState,
+        xaxis: {
+          ...prevState.xaxis,
+          min: new Date("2013-01-27").getTime(),
+          max: new Date("2013-02-26").getTime(),
+        },
+      }));
+    }
   }, [slot]);
 
   const setSlotHandler = (slot) => {
@@ -177,7 +189,7 @@ export const MainChart = () => {
           options={options}
           series={series}
           type="area"
-          height={450}
+          height={chartHeight}
           width={"100%"}
           fontFamily={theme.typography.fontFamily}
         />

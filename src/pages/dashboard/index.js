@@ -6,12 +6,14 @@ import { MainChart } from "../../components/dasboard/MainChart";
 import { Accounts } from "../../components/dasboard/Accounts";
 import { Transactions } from "../../components/dasboard/Transactions";
 import { useUserStore } from "@/src/store/userStore";
+import { ExpenseChart } from "@/src/components/dasboard/ExpenseChart";
 import { useEffect } from "react";
 const dashboard = () => {
   const timePeriod = getTimePeriod();
   const theme = useTheme();
   const smScreen = useMediaQuery(theme.breakpoints.down("md"));
   const user = useUserStore((state) => state.user);
+  const chartHeight = smScreen ? 280 : 350;
 
   // useEffect(() => {
   //   console.log(user);
@@ -26,37 +28,44 @@ const dashboard = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Box m="20px">
-        <Box m="10px 0">
-          <Header
-            title1={`${timePeriod}`}
-            title2={`${user?.first_name}`}
-            subtitle="Welcome to your dashboard"
-          />
-        </Box>
-        <Grid container rowSpacing={2} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-          <Grid item xs={12} sm={12} md={7}>
-            <Grid container rowSpacing={2}>
-              <Grid item xs={12}>
-                <MainChart />
-              </Grid>
-              {smScreen && (
+      {user ? (
+        <Box m="20px">
+          <Box m="10px 0">
+            <Header
+              title1={`${timePeriod}`}
+              title2={`${user?.first_name}`}
+              subtitle="Welcome to your dashboard"
+            />
+          </Box>
+          <Grid
+            container
+            rowSpacing={2}
+            columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+          >
+            <Grid item xs={12} sm={12} md={7}>
+              <Grid container rowSpacing={2}>
                 <Grid item xs={12}>
-                  <Accounts />
+                  <ExpenseChart chartHeight={chartHeight} />
+                  {/* <MainChart /> */}
                 </Grid>
-              )}
-              <Grid item xs={12}>
-                <Transactions />
+                {smScreen && (
+                  <Grid item xs={12}>
+                    <Accounts />
+                  </Grid>
+                )}
+                <Grid item xs={12}>
+                  <Transactions />
+                </Grid>
               </Grid>
             </Grid>
+            {!smScreen && (
+              <Grid item xs={12} sm={12} md={5}>
+                <Accounts />
+              </Grid>
+            )}
           </Grid>
-          {!smScreen && (
-            <Grid item xs={12} sm={12} md={5}>
-              <Accounts />
-            </Grid>
-          )}
-        </Grid>
-      </Box>
+        </Box>
+      ) : null}
     </>
   );
 };

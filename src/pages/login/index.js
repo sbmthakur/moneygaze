@@ -57,7 +57,7 @@ const login = () => {
         baseUrl + "/api/registerviagoogle",
         credential
       );
-      console.log(response.data);
+
       const token = response.data.ssotoken;
       // const token = "ouath";
       Cookies.set("moneygaze-user", token);
