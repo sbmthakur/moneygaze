@@ -45,6 +45,7 @@ export const Transactions = () => {
             backgroundColor: "transparent !important",
             backgroundImage: "none !important",
             boxShadow: "none !important",
+            margin: "0 !important",
             "&:before": {
               backgroundColor: "transparent !important",
             },
