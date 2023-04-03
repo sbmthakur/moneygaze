@@ -96,18 +96,11 @@ router.post('/exchange_public_token', async (req: Request, res: Response) => {
     const uniqueidHeader = req.headers.uniqueid as string;
     let uniqueid: number = parseInt(uniqueidHeader);
 
-    // return res.status(500).send({
-    //     message: "Something went wrong. Try again.",
-    // });
-
     const response = await client.itemPublicTokenExchange({
       public_token: req.body.public_token
     })
 
     const access_token = response.data.access_token;
-
-    // const uniqueid: number = parseInt(req.headers.uniqueid);
-
 
     let ed = new Date()
     const tz_offset = ed.getTimezoneOffset()
@@ -124,8 +117,6 @@ router.post('/exchange_public_token', async (req: Request, res: Response) => {
       start_date,
       end_date
     })
-
-    // console.log(start_date, end_date, JSON.stringify(data.data))
 
     const institution_id = data.data.item.institution_id as string
 
@@ -144,6 +135,9 @@ router.post('/exchange_public_token', async (req: Request, res: Response) => {
     }
 
     let resData = await fetchUserAccountAndTransactions(uniqueid, req);
+    if (!resData.accounts){
+      return res.status(204).send(resData)
+    }
 
     return res.send(resData)
 
@@ -196,7 +190,6 @@ const storeInDB = async (userid: number, plaidAccountsData: TransactionsGetRespo
     let accounts = [];
 
     for (let acc of plaidAccountsData.accounts) {
-      console.log(acc.balances)
       let r = {
         account_id: acc.account_id as string,
         name: acc.name as string,
@@ -282,10 +275,8 @@ const storeInDB = async (userid: number, plaidAccountsData: TransactionsGetRespo
 export const fetchUserAccountAndTransactions = async (userid: number, request: Request) => {
 
   const payload = verify(request.headers.ssotoken as string, JWTsecret);
-  console.log(payload, (payload as TokenInterface)._id, userid)
 
   if ((payload as TokenInterface)._id != userid) {
-    console.log("In here")
     throw new Error("Token invalid for the user.")
   }
 
@@ -301,6 +292,9 @@ export const fetchUserAccountAndTransactions = async (userid: number, request: R
     itemData.push(res.item_id)
   })
 
+  if (itemData.length == 0){
+    return {}
+  }
   const accountData = await prisma.account.findMany({
     where: {
       item_id: {
@@ -316,8 +310,6 @@ export const fetchUserAccountAndTransactions = async (userid: number, request: R
       }
     }
   })
-
-  console.log(accountData.length)
 
   let accountIdForTranscation: string[] = [];
   const accounts: AccountsCollectionNew = {}
@@ -352,8 +344,6 @@ export const fetchUserAccountAndTransactions = async (userid: number, request: R
     skip: 0,
     take: 100
   });
-
-  console.log(transcationData.length);
 
   const transactions: ResponseTransaction[] = transcationData.map(t => {
     return {

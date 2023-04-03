@@ -5,12 +5,6 @@ import {
 } from "express";
 const router = Router();
 
-import {
-  verify
-} from "jsonwebtoken";
-
-const JWTsecret = process.env.JWTSEC as string;
-
 export interface TokenInterface {
   _id: number;
   email: string;
@@ -32,14 +26,10 @@ router.get("/getaccountdetails", async (request: Request, response: Response) =>
         const uniqueidHeader = request.headers.uniqueid as string;
         let uniqueid: number = parseInt(uniqueidHeader);
 
-        const payload = verify(request.headers.ssotoken as string, JWTsecret);
-        // console.log(payload, (payload as TokenInterface)._id, uniqueid)
-
-        if ((payload as TokenInterface)._id != uniqueid) {
-            return response.status(401).send({"message": "Invalid ssotoken."})
-        }
-
         const resData = await fetchUserAccountAndTransactions(uniqueid, request);
+        if (!resData.accounts){
+            return response.status(204).send(resData)
+        }
         return response.send(resData);
 
     } catch (error) {
