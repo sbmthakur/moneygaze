@@ -64,7 +64,9 @@ model Account {
 model Transaction {
   transaction_id String   @id
   account_id     String
+  name           String
   date           String
+  payment_channel String
   amount         Decimal
   category       String
   created        DateTime @default(now())

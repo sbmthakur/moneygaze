@@ -197,7 +197,7 @@ router.post( "/registerviagoogle", jsonParser, async (request: Request, response
   }
 );
 
-async function verify(token: string) {
+export async function verify(token: string) {
   const ticket = await client.verifyIdToken({
     idToken: token,
     audience: CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend

@@ -14,7 +14,18 @@ import {
   AccountSubtype
 } from "plaid";
 
+import {
+  verify
+} from "jsonwebtoken";
+
+const JWTsecret = process.env.JWTSEC as string;
+
 const router = Router();
+
+export interface TokenInterface {
+  _id: number;
+  email: string;
+}
 
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
@@ -36,9 +47,6 @@ import {
   Prisma,
   PrismaClient
 } from "@prisma/client";
-import {
-  Decimal
-} from "@prisma/client/runtime";
 const prisma = new PrismaClient();
 
 const client = new PlaidApi(configuration);
@@ -51,14 +59,12 @@ interface ResponseAccount {
   balance: number
 }
 
-// interface PlaidAccountsType{
-//   accounts: Prisma.AccountsCollection
-//   item: 
-
-// }
-
 type AccountsCollection = {
   [key in AccountType] ? : ResponseAccount[]
+}
+
+interface AccountsCollectionNew {
+  [key: string]: ResponseAccount[];
 }
 
 interface ResponseTransaction {
@@ -86,6 +92,14 @@ router.post('/create_link_token', async (req: Request, res: Response) => {
 
 router.post('/exchange_public_token', async (req: Request, res: Response) => {
   try {
+
+    const uniqueidHeader = req.headers.uniqueid as string;
+    let uniqueid: number = parseInt(uniqueidHeader);
+
+    // return res.status(500).send({
+    //     message: "Something went wrong. Try again.",
+    // });
+
     const response = await client.itemPublicTokenExchange({
       public_token: req.body.public_token
     })
@@ -93,9 +107,7 @@ router.post('/exchange_public_token', async (req: Request, res: Response) => {
     const access_token = response.data.access_token;
 
     // const uniqueid: number = parseInt(req.headers.uniqueid);
-    const uniqueidHeader = req.headers.uniqueid as string;
 
-    let uniqueid: number = parseInt(uniqueidHeader);
 
     let ed = new Date()
     const tz_offset = ed.getTimezoneOffset()
@@ -113,9 +125,7 @@ router.post('/exchange_public_token', async (req: Request, res: Response) => {
       end_date
     })
 
-    console.log(start_date, end_date, JSON.stringify(data.data))
-
-    // await storeInDB(uniqueid, data.data, access_token);
+    // console.log(start_date, end_date, JSON.stringify(data.data))
 
     const institution_id = data.data.item.institution_id as string
 
@@ -127,127 +137,241 @@ router.post('/exchange_public_token', async (req: Request, res: Response) => {
       }
     })).data.institution
 
-    await storeInDB(uniqueid, data.data, access_token, insitution_data);
+    let storedInDatabaseResponse = await storeInDB(uniqueid, data.data, access_token, insitution_data);
 
-    const plaidAccounts = data.data.accounts
-    const accounts: AccountsCollection = {}
-
-    for (let acc of plaidAccounts) {
-
-      const current_balance = acc.balances.current;
-
-      const r: ResponseAccount = {
-        acc_num: acc.mask as string,
-        acc_name: acc.name,
-        balance: current_balance as number,
-        ins_name: insitution_data.name,
-        ins_logo: insitution_data.logo as string
-      }
-
-      if (accounts[acc.type]) {
-        accounts[acc.type] !.push(r)
-      } else {
-        accounts[acc.type] = [r]
-      }
+    if(!storedInDatabaseResponse){
+      throw new Error("Some issue occured while storing in database")
     }
 
-    const transactions: ResponseTransaction[] = data.data.transactions.map(t => {
-      return {
-        amount: t.amount,
-        name: t.name,
-        date: t.date,
-        payment_metadata: {
-          payment_channel: t.payment_channel
-        }
-      }
-    })
+    let resData = await fetchUserAccountAndTransactions(uniqueid, req);
 
-    res.send({
-      accounts,
-      transactions
-    })
-  } catch (error) {
+    return res.send(resData)
+
+  } catch (error: any) {
     console.log(error)
-    // res.send({}).co
-    res.status(500).send({
-      message: "Something went wrong. Try again.",
-    });
+    if (error.message === "Request failed with status code 400") {
+      res.status(400).send({
+        message: "Exchange is invalid or expired.",
+      });
+    } else {
+      res.status(500).send({
+        message: "Something went wrong. Try again.",
+      });
+    }
   }
 })
 
-const storeInDB = async (userid: number, plaidAccountsData: TransactionsGetResponse, access_token: string, insitution_data: any) => {
-  try{
-  const itemData = await prisma.item.findUnique({
-    where: {
-      item_id: plaidAccountsData.item.item_id,
-    },
-    select: {
-      item_id: true
-    },
-  });
-
-  if (!itemData) {
-    await prisma.item.create({
-      data: {
+const storeInDB = async (userid: number, plaidAccountsData: TransactionsGetResponse, access_token: string, insitution_data: any): Promise < Boolean > => {
+  // await prisma.item.deleteMany({});
+  try {
+    const val = await prisma.item.upsert({
+      where: {
+        item_id: plaidAccountsData.item.item_id as string,
+      },
+      update: {
+        // item_id: plaidAccountsData.item.item_id as string,
+        access_token: access_token as string,
+        user_id: userid as number
+      },
+      create: {
         item_id: plaidAccountsData.item.item_id as string,
         access_token: access_token as string,
         user_id: userid as number
       }
     });
-  }
 
-  const instutionData = await prisma.institution.findUnique({
-    where: {
-      institution_id: plaidAccountsData.item.institution_id as string,
-    },
-    select: {
-      institution_id: true
-    },
-  });
-
-  if (!instutionData) {
-    await prisma.institution.create({
-      data: {
+    await prisma.institution.upsert({
+      where: {
+        institution_id: plaidAccountsData.item.institution_id as string,
+      },
+      update: {
+        name: insitution_data.name as string,
+      },
+      create: {
         institution_id: plaidAccountsData.item.institution_id as string,
         name: insitution_data.name as string,
       }
     });
-  }
 
-  let accounts = [];
+    let accounts = [];
 
-  for (let acc of plaidAccountsData.accounts) {
-    let r = {
-      account_id: acc.account_id as string,
-      name: acc.name as string,
-      official_name: acc.official_name as string,
-      available_balance: acc.balances.available_balance as Decimal,
-      current_balance: acc.balances.current_balance as Decimal,
-      limit: acc.balances.limit,
-      type: acc.type as string,
-      subtype: acc.subtype as string,
-      institution_id: plaidAccountsData.item.institution_id as string,
-      mask: acc.mask as string,
-      persistent_account_id: acc.account_id as string,
-      item_id: plaidAccountsData.item.item_id
+    for (let acc of plaidAccountsData.accounts) {
+      console.log(acc.balances)
+      let r = {
+        account_id: acc.account_id as string,
+        name: acc.name as string,
+        official_name: acc.official_name as string,
+        available_balance: Number(acc.balances.available) as number,
+        current_balance: Number(acc.balances.current) as number,
+        limit: acc.balances.limit,
+        type: acc.type as string,
+        subtype: acc.subtype as string,
+        institution_id: plaidAccountsData.item.institution_id as string,
+        mask: acc.mask as string,
+        persistent_account_id: acc.account_id as string,
+        item_id: plaidAccountsData.item.item_id
+      }
+      accounts.push(r)
     }
-    accounts.push(r)
+
+    for (const acc of accounts) {
+      await prisma.account.upsert({
+        where: {
+          account_id: acc.account_id as string,
+        },
+        update: {
+          name: acc.name as string,
+          official_name: acc.official_name as string,
+          available_balance: Number(acc.available_balance) as number,
+          current_balance: Number(acc.current_balance) as number,
+          limit: acc.limit,
+          type: acc.type as string,
+          subtype: acc.subtype as string,
+          institution_id: plaidAccountsData.item.institution_id as string,
+          mask: acc.mask as string,
+          persistent_account_id: acc.account_id as string,
+          item_id: plaidAccountsData.item.item_id
+        },
+        create: {
+          ...acc
+        },
+      });
+    }
+
+    let transactionsData: {
+      transaction_id: string;name: string;payment_channel: string;account_id: string;amount: number;category: string;date: string;
+    } [] = [];
+
+    plaidAccountsData.transactions.map(trans => {
+      transactionsData.push({
+        transaction_id: trans.transaction_id,
+        name: trans.name,
+        payment_channel: trans.payment_channel,
+        account_id: trans.account_id,
+        amount: trans.amount,
+        category: trans.category?.[0] || '',
+        date: trans.date
+      })
+    })
+
+    await Promise.all(transactionsData.map(async (t) => {
+      await prisma.transaction.upsert({
+        where: {
+          transaction_id: t.transaction_id as string,
+        },
+        update: {
+          name: t.name,
+          payment_channel: t.payment_channel,
+          account_id: t.account_id,
+          amount: t.amount,
+          category: t.category?.[0] || '',
+          date: t.date
+        },
+        create: {
+          ...t
+        },
+      });
+    }));
+    return true;
+  } catch (error) {
+    console.log(error)
+    return false;
+  }
+}
+
+export const fetchUserAccountAndTransactions = async (userid: number, request: Request) => {
+
+  const payload = verify(request.headers.ssotoken as string, JWTsecret);
+  console.log(payload, (payload as TokenInterface)._id, userid)
+
+  if ((payload as TokenInterface)._id != userid) {
+    console.log("In here")
+    throw new Error("Token invalid for the user.")
   }
 
-  for (const acc of accounts) {
-    await prisma.account.create({
-      data: {
-        ...acc
-        // item: { connect: { item_id: acc.item_id } },
-        // name: account.name,
-      },
-    });
+  const itemData: string[] = [];
+  (await prisma.item.findMany({
+    where: {
+      user_id: userid
+    },
+    select: {
+      item_id: true
+    }
+  })).map(res => {
+    itemData.push(res.item_id)
+  })
+
+  const accountData = await prisma.account.findMany({
+    where: {
+      item_id: {
+        in: itemData
+      }
+    },
+    distinct: ['account_id'],
+    include: {
+      institution: {
+        select: {
+          name: true
+        }
+      }
+    }
+  })
+
+  console.log(accountData.length)
+
+  let accountIdForTranscation: string[] = [];
+  const accounts: AccountsCollectionNew = {}
+
+  for (let acc of accountData) {
+    accountIdForTranscation.push(acc.account_id);
+    const r: ResponseAccount = {
+      acc_num: acc.mask as string,
+      acc_name: acc.name,
+      balance: Number(acc.current_balance) as number,
+      ins_name: acc.institution.name,
+      ins_logo: 'insitution_data.logo' as string
+    }
+
+    if (accounts[acc.type]) {
+      accounts[acc.type] !.push(r)
+    } else {
+      accounts[acc.type] = [r]
+    }
   }
-  return true;
-  }catch(error){
-    // reject()
-    return false;
-  } 
-}
+
+  const transcationData = await prisma.transaction.findMany({
+    where: {
+      account_id: {
+        in: accountIdForTranscation
+      }
+    },
+
+    orderBy: {
+      date: 'desc'
+    },
+    skip: 0,
+    take: 100
+  });
+
+  console.log(transcationData.length);
+
+  const transactions: ResponseTransaction[] = transcationData.map(t => {
+    return {
+      amount: Number(t.amount),
+      //@ts-ignore
+      name: t.name || '',
+      date: t.date,
+      payment_metadata: {
+        //@ts-ignore
+        payment_channel: t.payment_channel
+      }
+    }
+  })
+
+  return {
+    accounts,
+    transactions
+  };
+};
 
 export const linkRouter = router
