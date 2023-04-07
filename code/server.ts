@@ -5,6 +5,7 @@ dotenv.config();
 const cors = require("cors");
 import { userRouter } from "./user";
 import { linkRouter } from "./link";
+import { acDetailsRouter } from "./acdetails";
 import { PrismaClient } from "@prisma/client";
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express")
@@ -53,6 +54,7 @@ app.use(cors(corsOptions));
 //app.use(bodyParser)
 app.use("/api", userRouter);
 app.use("/api", linkRouter);
+app.use("/api", acDetailsRouter);
 
 app.listen(port, async () => {
   console.log(`Server started on ${port}`);
