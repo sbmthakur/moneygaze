@@ -17,7 +17,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Sync } from "@mui/icons-material";
 import SampleData from "../../../sample_data/exchange_public_tokeen_response.json";
 
-export const Accounts = () => {
+export const Accounts = ({ openLink, disableButton }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [loading, setLoading] = useState(false);
@@ -87,7 +87,8 @@ export const Accounts = () => {
             variant="outlined"
             color="secondary"
             sx={{ textTransform: "none" }}
-            onClick={() => alert("Add Account")}
+            onClick={() => openLink()}
+            disabled={disableButton}
           >
             Add Account
           </Button>

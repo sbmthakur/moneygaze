@@ -7,17 +7,68 @@ import { Accounts } from "../../components/dasboard/Accounts";
 import { Transactions } from "../../components/dasboard/Transactions";
 import { useUserStore } from "@/src/store/userStore";
 import { ExpenseChart } from "@/src/components/dasboard/ExpenseChart";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { usePlaidLink } from "react-plaid-link";
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
 const dashboard = () => {
   const timePeriod = getTimePeriod();
   const theme = useTheme();
   const smScreen = useMediaQuery(theme.breakpoints.down("md"));
   const user = useUserStore((state) => state.user);
   const chartHeight = smScreen ? 280 : 350;
+  const [token, setToken] = useState(null);
 
-  // useEffect(() => {
-  //   console.log(user);
-  // }, [user]);
+  const [accounts, setAccounts] = useState(null);
+  const [trasactions, setTransactions] = useState(null);
+
+  const createLinkToken = async () => {
+    const response = await fetch(baseUrl + "/api/create_link_token", {
+      method: "POST",
+    });
+    const { link_token } = await response.json();
+    setToken(link_token);
+  };
+
+  useEffect(() => {
+    createLinkToken();
+  }, []);
+
+  const onSuccess = async (publicToken) => {
+    console.log("user", user);
+
+    const response = await fetch(baseUrl + "/api/exchange_public_token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        uniqueid: String(user.uniqueid),
+        ssotoken: user.ssotoken,
+      },
+      body: JSON.stringify({
+        public_token: publicToken,
+      }),
+    });
+    const data = await response.json();
+    console.log("data", data);
+    setAccounts(data.accounts);
+    setTransactions(data.transactions);
+  };
+
+  const { open, ready } = usePlaidLink({
+    token,
+    onSuccess,
+  });
+
+  useEffect(() => {
+    // token && alert("Token is ready");
+    console.log("token", token);
+    console.log("user", user);
+  }, [token]);
+
+  // <button onClick={() => open()} disabled={!ready}>
+  //     <strong>Link account</strong>
+  //   </button>
 
   return (
     <>
@@ -50,7 +101,11 @@ const dashboard = () => {
                 </Grid>
                 {smScreen && (
                   <Grid item xs={12}>
-                    <Accounts />
+                    <Accounts
+                      openLink={open}
+                      disableButton={!ready}
+                      accounts={accounts}
+                    />
                   </Grid>
                 )}
                 <Grid item xs={12}>
