@@ -1,20 +1,14 @@
-import {
-  Request,
-  Response,
-  Router
-} from "express";
+import { Request, Response, Router } from "express";
 import bodyParser from "body-parser";
-import {
-  RequestWithPrisma
-} from "./server";
+import { RequestWithPrisma } from "./server";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import {
-  OAuth2Client
-} from "google-auth-library";
-import {
-  Prisma
-} from "@prisma/client";
+import { OAuth2Client } from "google-auth-library";
+import { Prisma } from "@prisma/client";
+
+import cheerio from "cheerio";
+import axios from "axios";
+
 const JWTsecret = process.env.JWTSEC as string;
 
 const jsonParser = bodyParser.json();
@@ -23,75 +17,133 @@ const router = Router();
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
-export type UserData = Prisma.PromiseReturnType < typeof fetchUserData > ;
+export type UserData = Prisma.PromiseReturnType<typeof fetchUserData>;
+
+interface card {
+  image?: String;
+  name?: String;
+  annual_fee?: String;
+  recommended?: String;
+  reward_rate?: String;
+}
+
+async function scrapeCreditCardsPointsGuy() {
+  const url = "https://thepointsguy.com/credit-cards/best/";
+  const response = await axios.get(url);
+
+  const $ = cheerio.load(response.data);
+
+  const cards: Object[] = [];
+
+  $(".phx-c\\:credit-card-horizontal").each((i: Object, element) => {
+    const c: card = {};
+    c.image = $(element).find("._card_img").attr("src");
+    var temp_name = $(element)
+      .find(".phx-c\\:content-header")
+      .find("h2.phx-subheading")
+      .text();
+    temp_name = temp_name.substring(7);
+    c.name = temp_name.substring(0, temp_name.length - 3);
+    var temp_annual_fee = $(element)
+      .find(".phx-c\\:card-annual-fee")
+      .find(".phx-number")
+      .text();
+
+    temp_annual_fee = temp_annual_fee.substring(5);
+    c.annual_fee = temp_annual_fee.substring(0, temp_annual_fee.length - 3);
+    // c.annual_fee = temp_annual_fee;
+    var temp_recommended = $(element)
+      .find(".phx-c\\:card-recommended-credit")
+      .find(".phx-number")
+      .text();
+    temp_recommended = temp_recommended.substring(3);
+    c.recommended = temp_recommended.substring(0, temp_recommended.length - 12);
+
+    var temp_reward_rate = $(element)
+      .find("._rewards")
+      .find(".phx-c\\:card-reward-rates")
+      .find(".phx-number.--md.--lowercase")
+      .text();
+    temp_reward_rate = temp_reward_rate.substring(3);
+    c.reward_rate = temp_reward_rate.substring(0, temp_reward_rate.length - 1);
+
+    cards.push(c);
+  });
+  return cards;
+}
 
 router.get("/info", async (request: Request, response: Response) => {
+  const c = await scrapeCreditCardsPointsGuy();
+  console.log(c);
+
+  console.log("Call huii......");
   response.send({
     done: true,
   });
 });
 
-router.post("/login", jsonParser, async (request: Request, response: Response) => {
-  try {
-    const email = request.body.email;
-    const pass = request.body.password;
+router.post(
+  "/login",
+  jsonParser,
+  async (request: Request, response: Response) => {
+    try {
+      const email = request.body.email;
+      const pass = request.body.password;
 
-    console.log(email, pass);
+      console.log(email, pass);
 
-    if (!email || !pass) {
-      return response.status(400).send({
-        message: "Missing required fields",
+      if (!email || !pass) {
+        return response.status(400).send({
+          message: "Missing required fields",
+        });
+      }
+
+      const userData = await fetchUserData(email, request);
+
+      if (!userData) {
+        return response.status(404).send({
+          message: "User doesn't exist, create new account.",
+        });
+      }
+
+      const passwordMatch = await bcrypt.compare(
+        pass,
+        userData.password as string
+      );
+
+      if (!passwordMatch) {
+        return response.status(401).send({
+          message: "Invalid email or password",
+        });
+      }
+
+      let result = await formJwt(userData as UserData);
+
+      const { password, ...returnUserData } = userData;
+
+      result = {
+        ...result,
+        ...returnUserData,
+      };
+
+      response.status(200).send(result);
+    } catch (error) {
+      console.error(error);
+      response.status(500).send({
+        message: "Something went worong. Try again.",
       });
     }
-
-    const userData = await fetchUserData(email, request);
-
-    if (!userData) {
-      return response.status(404).send({
-        message: "User doesn't exist, create new account.",
-      });
-    }
-
-    const passwordMatch = await bcrypt.compare(
-      pass,
-      userData.password as string
-    );
-
-    if (!passwordMatch) {
-      return response.status(401).send({
-        message: "Invalid email or password",
-      });
-    }
-
-    let result = await formJwt(userData as UserData);
-
-    const {
-      password,
-      ...returnUserData
-    } = userData;
-
-    result = {
-      ...result,
-      ...returnUserData,
-    };
-
-    response.status(200).send(result);
-  } catch (error) {
-    console.error(error);
-    response.status(500).send({
-      message: "Something went worong. Try again.",
-    });
   }
-});
+);
 
-router.post( "/register", jsonParser, async (request: Request, response: Response) => {
+router.post(
+  "/register",
+  jsonParser,
+  async (request: Request, response: Response) => {
     try {
       const prisma = (request as RequestWithPrisma).prisma;
 
-      const {
-        firstName,
-        lastName
-      } = request.body;
+      const { firstName, lastName } = request.body;
 
       const email = request.body.email;
       const pass = request.body.password;
@@ -119,10 +171,7 @@ router.post( "/register", jsonParser, async (request: Request, response: Respons
       const userData = await fetchUserData(email, request);
 
       if (userData) {
-        const {
-          password,
-          ...returnUserData
-        } = userData;
+        const { password, ...returnUserData } = userData;
         let result = await formJwt(userData as UserData);
 
         result = {
@@ -141,7 +190,10 @@ router.post( "/register", jsonParser, async (request: Request, response: Respons
   }
 );
 
-router.post( "/registerviagoogle", jsonParser, async (request: Request, response: Response) => {
+router.post(
+  "/registerviagoogle",
+  jsonParser,
+  async (request: Request, response: Response) => {
     try {
       const prisma = (request as RequestWithPrisma).prisma;
 
@@ -171,22 +223,17 @@ router.post( "/registerviagoogle", jsonParser, async (request: Request, response
         const userData = await fetchUserData(newUser.email, request);
         if (userData) {
           let result = await formJwt(userData as UserData);
-          const {
-            password,
-            ...returnUserData
-          } = userData;
+          const { password, ...returnUserData } = userData;
           result = {
             ...result,
-            ...returnUserData
+            ...returnUserData,
           };
           response.status(200).send(result);
         }
       } else {
-        response
-          .status(500)
-          .send({
-            message: "Something went wrong. Try again."
-          });
+        response.status(500).send({
+          message: "Something went wrong. Try again.",
+        });
       }
     } catch (error) {
       console.error(error);
@@ -214,11 +261,13 @@ export async function verify(token: string) {
 }
 
 const formJwt = async (userData: UserData) => {
-  const token = jwt.sign({
+  const token = jwt.sign(
+    {
       _id: userData!.user_id,
       email: userData!.email,
     },
-    JWTsecret, {
+    JWTsecret,
+    {
       expiresIn: "20 days",
     }
   );
