@@ -7,24 +7,25 @@ import { userRouter } from "./user";
 import { linkRouter } from "./link";
 import { acDetailsRouter } from "./acdetails";
 import { PrismaClient } from "@prisma/client";
+
 const swaggerJsdoc = require("swagger-jsdoc");
-const swaggerUi = require("swagger-ui-express")
+const swaggerUi = require("swagger-ui-express");
 const prisma = new PrismaClient();
 
 const swaggerOptions = {
   failOnErrors: true,
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'MoneyGaze API',
-      version: '1.0.0',
-      description: 'REST API doc for MoneyGaze'
-    }
+      title: "MoneyGaze API",
+      version: "1.0.0",
+      description: "REST API doc for MoneyGaze",
+    },
   },
-  apis: ['./code/openapi/*.yaml']
-}
+  apis: ["./code/openapi/*.yaml"],
+};
 
-const swaggerSpec = swaggerJsdoc(swaggerOptions)
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 const nextUrl = process.env.NEXT_BASE_PATH;
 
@@ -47,7 +48,7 @@ app.use((req: Request, response: Response, next: NextFunction) => {
   (req as RequestWithPrisma).prisma = prisma;
   next();
 });
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(cors(corsOptions));
 
