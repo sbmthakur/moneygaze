@@ -20,11 +20,11 @@ const client = new OAuth2Client(CLIENT_ID);
 export type UserData = Prisma.PromiseReturnType<typeof fetchUserData>;
 
 interface card {
-  image?: String;
-  name?: String;
-  annual_fee?: String;
-  recommended?: String;
-  reward_rate?: String;
+  image?: string;
+  name?: string;
+  annual_fee?: string;
+  recommended?: string;
+  reward_rate?: string;
 }
 
 async function scrapeCreditCardsPointsGuy() {
@@ -48,10 +48,8 @@ async function scrapeCreditCardsPointsGuy() {
       .find(".phx-c\\:card-annual-fee")
       .find(".phx-number")
       .text();
-
     temp_annual_fee = temp_annual_fee.substring(5);
     c.annual_fee = temp_annual_fee.substring(0, temp_annual_fee.length - 3);
-    // c.annual_fee = temp_annual_fee;
     var temp_recommended = $(element)
       .find(".phx-c\\:card-recommended-credit")
       .find(".phx-number")
@@ -72,13 +70,10 @@ async function scrapeCreditCardsPointsGuy() {
   return cards;
 }
 
-router.get("/info", async (request: Request, response: Response) => {
+router.get("/getCreditCards", async (request: Request, response: Response) => {
   const c = await scrapeCreditCardsPointsGuy();
-  console.log(c);
-
-  console.log("Call huii......");
   response.send({
-    done: true,
+    cards: c,
   });
 });
 
