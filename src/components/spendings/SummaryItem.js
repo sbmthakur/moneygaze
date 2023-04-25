@@ -1,4 +1,4 @@
-import { Avatar, Box, Stack, Typography, useTheme } from "@mui/material";
+import { Stack, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme/colorTokens";
 
 export const SummaryItem = ({ icon, category, amount, description }) => {
