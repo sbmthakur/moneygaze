@@ -20,11 +20,11 @@ const client = new OAuth2Client(CLIENT_ID);
 export type UserData = Prisma.PromiseReturnType<typeof fetchUserData>;
 
 interface card {
-  image?: string;
-  name?: string;
-  annual_fee?: string;
-  recommended?: string;
-  reward_rate?: string;
+  image?: String;
+  name?: String;
+  annual_fee?: String;
+  recommended?: String;
+  reward_rate?: String;
 }
 
 async function scrapeCreditCardsPointsGuy() {
@@ -33,35 +33,41 @@ async function scrapeCreditCardsPointsGuy() {
 
   const $ = cheerio.load(response.data);
 
-  const cards: Object[] = [];
+  const cards: object[] = [];
 
   $(".phx-c\\:credit-card-horizontal").each((i: Object, element) => {
     const c: card = {};
     c.image = $(element).find("._card_img").attr("src");
     var temp_name = $(element)
       .find(".phx-c\\:content-header")
-      .find("h2.phx-subheading")
+      .find("h2.phx-subheading.--sm")
       .text();
+    console.log(temp_name);
     temp_name = temp_name.substring(7);
+
     c.name = temp_name.substring(0, temp_name.length - 3);
     var temp_annual_fee = $(element)
+      .find(".annual-fee.--boxLeft")
       .find(".phx-c\\:card-annual-fee")
-      .find(".phx-number")
+      .find(".phx-label.--lg")
       .text();
+    console.log("annual fee", temp_annual_fee);
     temp_annual_fee = temp_annual_fee.substring(5);
     c.annual_fee = temp_annual_fee.substring(0, temp_annual_fee.length - 3);
     var temp_recommended = $(element)
       .find(".phx-c\\:card-recommended-credit")
-      .find(".phx-number")
+      .find(".phx-label.--lg")
       .text();
+    console.log("recommended", temp_recommended);
     temp_recommended = temp_recommended.substring(3);
     c.recommended = temp_recommended.substring(0, temp_recommended.length - 12);
 
     var temp_reward_rate = $(element)
-      .find("._rewards")
+      .find(".rewards-rate.--boxRight")
       .find(".phx-c\\:card-reward-rates")
-      .find(".phx-number.--md.--lowercase")
+      .find(".phx-label.--lg")
       .text();
+    console.log("reward rate", temp_reward_rate);
     temp_reward_rate = temp_reward_rate.substring(3);
     c.reward_rate = temp_reward_rate.substring(0, temp_reward_rate.length - 1);
 
