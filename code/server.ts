@@ -40,7 +40,7 @@ const port = process.env.PORT || 3000;
 const corsOptions = {
   methods: ["GET", "PUT", "POST"],
   origin: nextUrl,
-  allowedHeaders: ["Content-Type", "API_KEY"],
+  allowedHeaders: ["Content-Type", "API_KEY", "uniqueid", "ssotoken"],
   optionsSuccessStatus: 200,
 };
 

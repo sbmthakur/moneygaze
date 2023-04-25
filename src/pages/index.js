@@ -5,16 +5,16 @@ import { usePlaidLink } from "react-plaid-link";
 export default function PlaidLink() {
   const [token, setToken] = useState(null);
 
-  useEffect(() => {
-    const createLinkToken = async () => {
-      const response = await fetch("/api/create-link-token", {
-        method: "POST",
-      });
-      const { link_token } = await response.json();
-      setToken(link_token);
-    };
-    // createLinkToken();
-  }, []);
+  // useEffect(() => {
+  //   const createLinkToken = async () => {
+  //     const response = await fetch("/api/create-link-token", {
+  //       method: "POST",
+  //     });
+  //     const { link_token } = await response.json();
+  //     setToken(link_token);
+  //   };
+  //   // createLinkToken();
+  // }, []);
 
   const onSuccess = useCallback(async (publicToken) => {
     await fetch("/api/exchange-public-token", {
@@ -33,8 +33,11 @@ export default function PlaidLink() {
   });
 
   return (
-    <button onClick={() => open()} disabled={!ready}>
-      <strong>Link account</strong>
-    </button>
+    // <button onClick={() => open()} disabled={!ready}>
+    //   <strong>Link account</strong>
+    // </button>
+    <>
+      <h1>Landing page</h1>
+    </>
   );
 }

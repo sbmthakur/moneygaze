@@ -38,18 +38,18 @@ export default function App({
           <CssBaseline />
 
           <ProSidebarProvider>
-            {/* <QueryClientProvider client={queryClient.current}>
-            {
-              // this is the important part, we are passing the dehydratedState to the Hydrate component and it will hydrate the cache on client
-              // prefetched data will be available on the client side to every component that uses useQuery
-            }
-            <Hydrate state={pageProps.dehydratedState}> */}
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
-            {/* <ReactQueryDevtools initialIsOpen={false} /> */}
-            {/* </Hydrate>
-          </QueryClientProvider> */}
+            <QueryClientProvider client={queryClient.current}>
+              {
+                // this is the important part, we are passing the dehydratedState to the Hydrate component and it will hydrate the cache on client
+                // prefetched data will be available on the client side to every component that uses useQuery
+              }
+              {/* <Hydrate state={pageProps.dehydratedState}> */}
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+              <ReactQueryDevtools initialIsOpen={false} />
+              {/* </Hydrate> */}
+            </QueryClientProvider>
           </ProSidebarProvider>
         </ThemeProvider>
       </GoogleOAuthProvider>
