@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import { Prisma } from "@prisma/client";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 
 import cheerio from "cheerio";
 import axios from "axios";
@@ -44,21 +45,38 @@ async function scrapeCreditCardsPointsGuy() {
       .text();
     temp_name = temp_name.substring(7);
     c.name = temp_name.substring(0, temp_name.length - 3);
+    /*
     var temp_annual_fee = $(element)
       .find(".phx-c\\:card-annual-fee")
-      .find(".phx-number")
+      //.find(".phx-number")
+      .find("phx-label --lg")
       .text();
+      */
 
-    temp_annual_fee = temp_annual_fee.substring(5);
-    c.annual_fee = temp_annual_fee.substring(0, temp_annual_fee.length - 3);
+    let temp_annual_fee = $(element)
+    .find(".phx-c\\:card-annual-fee")
+    .find("div")
+    .text();
+
+    console.log(temp_annual_fee)
+    temp_annual_fee = temp_annual_fee.substring(5).substring(0,3);
+    //c.annual_fee = temp_annual_fee.substring(0, temp_annual_fee.length - 3);
+    c.annual_fee = temp_annual_fee.trim()
+    if (c.annual_fee.endsWith('\n')) {
+      console.log('lol')
+    }
     // c.annual_fee = temp_annual_fee;
+    /*
     var temp_recommended = $(element)
       .find(".phx-c\\:card-recommended-credit")
       .find(".phx-number")
       .text();
     temp_recommended = temp_recommended.substring(3);
     c.recommended = temp_recommended.substring(0, temp_recommended.length - 12);
+    */
+    c.recommended = $(element).find(".phx-c\\:card-recommended-credit").find("div.phx-label").text().trim().substring(0,7)
 
+    /*
     var temp_reward_rate = $(element)
       .find("._rewards")
       .find(".phx-c\\:card-reward-rates")
@@ -66,6 +84,9 @@ async function scrapeCreditCardsPointsGuy() {
       .text();
     temp_reward_rate = temp_reward_rate.substring(3);
     c.reward_rate = temp_reward_rate.substring(0, temp_reward_rate.length - 1);
+    */
+
+    c.reward_rate = $(element).find(".phx-c\\:card-reward-rates").find("span.phx-body-copy").text().trim().split('\n')[0]
 
     cards.push(c);
   });
@@ -73,13 +94,23 @@ async function scrapeCreditCardsPointsGuy() {
 }
 
 router.get("/info", async (request: Request, response: Response) => {
-  const c = await scrapeCreditCardsPointsGuy();
-  console.log(c);
+  // @ts-ignore
+  const { qtype } = request.query
+  let data;
 
-  console.log("Call huii......");
-  response.send({
-    done: true,
-  });
+  if (existsSync('./cards.json')) {
+    data = await readFileSync('./cards.json', { encoding: 'utf-8'} );
+    data = JSON.parse(data)
+  } else {
+    data = await scrapeCreditCardsPointsGuy();
+    await writeFileSync('./cards.json', JSON.stringify(data, null, 2));
+  }
+
+  if (qtype) {
+  // @ts-ignore
+    data = data.filter(c => c.reward_rate.toLowerCase().includes(qtype.toLowerCase()))
+  }
+  response.send(data)
 });
 
 router.post(

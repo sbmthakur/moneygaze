@@ -67,6 +67,12 @@ export const SpendingsDonut = () => {
   };
 
   useEffect(() => {
+    let index = series.indexOf(Math.max(...series))
+    let category = labelList[index]
+    sessionStorage.setItem('category', category)
+  }, [])
+
+  useEffect(() => {
     if (checked) {
       setOptions((prev) => ({
         ...prev,
