@@ -35,6 +35,33 @@ const dashboard = () => {
     createLinkToken();
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      getAccounts();
+    }
+  }, [user]);
+
+  const getAccounts = async () => {
+    const response = await fetch(baseUrl + "/api/getaccountdetails", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        uniqueid: String(user.uniqueid),
+        ssotoken: user.ssotoken,
+      },
+    });
+
+    // check response code, if it is 204, do nothing, else set accounts and transactions
+    if (response.status === 204) {
+      return;
+    }
+
+    const data = await response.json();
+    console.log("data", data);
+    setAccounts(data.accounts);
+    setTransactions(data.transactions);
+  };
+
   const onSuccess = async (publicToken) => {
     console.log("user", user);
 
@@ -109,13 +136,17 @@ const dashboard = () => {
                   </Grid>
                 )}
                 <Grid item xs={12}>
-                  <Transactions />
+                  <Transactions transactions={trasactions} />
                 </Grid>
               </Grid>
             </Grid>
             {!smScreen && (
               <Grid item xs={12} sm={12} md={5}>
-                <Accounts />
+                <Accounts
+                  openLink={open}
+                  disableButton={!ready}
+                  accounts={accounts}
+                />
               </Grid>
             )}
           </Grid>
