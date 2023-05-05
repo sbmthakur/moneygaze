@@ -115,7 +115,11 @@ const dashboard = () => {
             </Grid>
             {!smScreen && (
               <Grid item xs={12} sm={12} md={5}>
-                <Accounts />
+                <Accounts
+                  openLink={open}
+                  disableButton={!ready}
+                  accounts={accounts}
+                />
               </Grid>
             )}
           </Grid>
