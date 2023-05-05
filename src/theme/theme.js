@@ -85,6 +85,7 @@ export const useMuiTheme = () => {
     shadows: {
       1: "none",
       10: "rgba(0, 0, 0, 0.08) 0px 4px 12px",
+      24: "0px 0px 40px  rgba(0, 0, 0, 0.2)",
     },
     // breakpoints: {
     //   values: {

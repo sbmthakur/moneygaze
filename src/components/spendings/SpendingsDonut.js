@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import dynamic from "next/dynamic";
 import { tokens } from "@/src/theme/colorTokens";
+import { useCategoryStore } from "@/src/store/categoryStore";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -58,6 +59,8 @@ export const SpendingsDonut = () => {
   const [series, setSeries] = useState(seriesList);
   const [options, setOptions] = useState(donoutChartOptions);
 
+  const setCategory = useCategoryStore((state) => state.setCategory);
+
   const colors = tokens(theme.palette.mode);
   const [checked, setChecked] = useState(false);
 
@@ -67,10 +70,10 @@ export const SpendingsDonut = () => {
   };
 
   useEffect(() => {
-    let index = series.indexOf(Math.max(...series))
-    let category = labelList[index]
-    sessionStorage.setItem('category', category)
-  }, [])
+    let index = series.indexOf(Math.max(...series));
+    let category = labelList[index];
+    setCategory && setCategory(category);
+  }, [setCategory]);
 
   useEffect(() => {
     if (checked) {
