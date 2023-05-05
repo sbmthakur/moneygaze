@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { mountStoreDevtool } from "simple-zustand-devtools";
 import { usePersistedUserStore } from "./userStore";
+import { usePersistedCategoryStore } from "./categoryStore";
 
 const empytyState = (set, get) => ({
   colorMode: "dark",
@@ -32,4 +33,5 @@ export const useColorStore = (selector, compare) => {
 if (process.env.NODE_ENV === "development") {
   mountStoreDevtool("color-mode", usePersistedColorStore);
   mountStoreDevtool("moneygaze-user", usePersistedUserStore);
+  mountStoreDevtool("spending-category", usePersistedCategoryStore);
 }

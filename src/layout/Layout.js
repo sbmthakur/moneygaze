@@ -1,6 +1,7 @@
 import React from "react";
 import MySideBar from "./MySideBar";
 import MyTopBar from "./MyTopBar";
+import { ScrollToTop } from "./ScrollToTop";
 import { useRouter } from "next/router";
 
 const Layout = (props) => {
@@ -20,6 +21,7 @@ const Layout = (props) => {
         <main>
           <MyTopBar />
           {props.children}
+          <ScrollToTop />
         </main>
       </div>
     </div>
